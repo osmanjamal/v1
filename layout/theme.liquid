@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="{{ settings.color_primary }}">
+
+  <!-- SEO -->
+  <title>
+    {{ page_title }}{% if current_tags %} &ndash; {{ 'general.meta.tags' | t: tags: current_tags | join: ', ' }}{% endif %}{% if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}
+  </title>
+  
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{{ 'favicon.png' | asset_url }}" type="image/png">
+
+  <!-- CSS -->
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+  
+  <!-- Custom CSS -->
+  {{ content_for_header }}
+
+  <!-- JavaScript -->
+  {{ 'jquery.min.js' | asset_url | script_tag }}
+  {{ 'theme.js' | asset_url | script_tag }}
+  
+  <!-- Responsive Images -->
+  <script>
+    // Picture element HTML5 shiv
+    document.createElement( "picture" );
+  </script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="template-{{ template | split: '.' | first }} {{ template.name }} {{ template.suffix }}">
+  
+  <!-- Announcement Bar -->
+  {% section 'announcement-bar' %}
+  
+  <!-- Header -->
+  {% section 'header' %}
+  
+  <!-- Mobile Menu -->
+  {% section 'mobile-menu' %}
+  
+  <!-- Main Content -->
+  <main id="MainContent" class="main-content" role="main">
+    {{ content_for_layout }}
+  </main>
+  
+  <!-- Footer -->
+  {% section 'footer' %}
+  
+  <!-- Modal Cart -->
+  {% section 'cart-drawer' %}
+  
+  <!-- Quick View Modal -->
+  {% section 'quick-view-modal' %}
+  
+  <!-- Size Chart Modal -->
+  {% section 'size-chart-modal' %}
+  
+  <!-- Newsletter Popup -->
+  {% if template == 'index' %}
+    {% section 'newsletter-popup' %}
+  {% endif %}
+  
+  <!-- Back to Top Button -->
+  <div id="back-to-top" title="{{ 'general.accessibility.back_to_top' | t }}">
+    <i class="fas fa-arrow-up"></i>
+  </div>
+  
+  <!-- JavaScript -->
+  <script>
+    // Shopify-specific theme JavaScript
+    {% if settings.enable_ajax_cart %}
+      // AJAX cart functionality
+      window.enableAjaxCart = true;
+    {% endif %}
+    
+    // Set global variables for theme
+    window.theme = window.theme || {};
+    window.theme.strings = {
+      addToCart: {{ 'products.product.add_to_cart' | t | json }},
+      soldOut: {{ 'products.product.sold_out' | t | json }},
+      unavailable: {{ 'products.product.unavailable' | t | json }},
+      inCart: {{ 'products.product.in_cart' | t | json }}
+    };
+    window.theme.moneyFormat = {{ shop.money_format | json }};
+    
+    // Initialize theme functionality
+    $(document).ready(function() {
+      theme.init();
+    });
+  </script>
+  
+  {{ content_for_footer }}
+</body>
+</html>

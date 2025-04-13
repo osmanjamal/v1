@@ -1,0 +1,486 @@
+<div class="hero-banner" data-section-id="{{ section.id }}" data-section-type="hero-banner">
+  <div class="hero-banner__slides" data-hero-slider>
+    {%- for block in section.blocks -%}
+      <div class="hero-banner__slide" {{ block.shopify_attributes }}>
+        <!-- صورة البانر -->
+        <div class="hero-banner__image-container">
+          {%- if block.settings.image != blank -%}
+            <img srcset="{{ block.settings.image | img_url: '480x' }} 480w,
+                         {{ block.settings.image | img_url: '720x' }} 720w,
+                         {{ block.settings.image | img_url: '1080x' }} 1080w,
+                         {{ block.settings.image | img_url: '1600x' }} 1600w,
+                         {{ block.settings.image | img_url: '2000x' }} 2000w"
+                 src="{{ block.settings.image | img_url: '1080x' }}"
+                 sizes="100vw"
+                 alt="{{ block.settings.image.alt | escape }}"
+                 loading="{{ forloop.first? 'eager' : 'lazy' }}"
+                 width="{{ block.settings.image.width }}"
+                 height="{{ block.settings.image.height }}">
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+        </div>
+        
+        <!-- محتوى البانر -->
+        <div class="hero-banner__content-container">
+          <div class="container">
+            <div class="hero-banner__content">
+              {%- if block.settings.subheading != blank -%}
+                <h3 class="hero-banner__subheading">{{ block.settings.subheading }}</h3>
+              {%- endif -%}
+              
+              {%- if block.settings.heading != blank -%}
+                <h2 class="hero-banner__heading">{{ block.settings.heading }}</h2>
+              {%- endif -%}
+              
+              {%- if block.settings.text != blank -%}
+                <div class="hero-banner__text">{{ block.settings.text }}</div>
+              {%- endif -%}
+              
+              {%- if block.settings.button_label != blank -%}
+                <a href="{{ block.settings.button_link }}" class="hero-banner__button btn btn--primary">
+                  {{ block.settings.button_label }}
+                </a>
+              {%- endif -%}
+              
+              {%- if block.settings.button_label_2 != blank -%}
+                <a href="{{ block.settings.button_link_2 }}" class="hero-banner__button btn btn--secondary">
+                  {{ block.settings.button_label_2 }}
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+  
+  <!-- تحكمات البانر -->
+  {%- if section.blocks.size > 1 -%}
+    <div class="hero-banner__controls">
+      <button type="button" class="hero-banner__arrow hero-banner__arrow--prev" aria-label="{{ 'general.accessibility.previous_slide' | t }}">
+        <span class="icon-chevron-left" aria-hidden="true"></span>
+      </button>
+      
+      <div class="hero-banner__dots"></div>
+      
+      <button type="button" class="hero-banner__arrow hero-banner__arrow--next" aria-label="{{ 'general.accessibility.next_slide' | t }}">
+        <span class="icon-chevron-right" aria-hidden="true"></span>
+      </button>
+    </div>
+  {%- endif -%}
+</div>
+
+<!-- ملف JavaScript للبانر -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var heroContainer = document.querySelector('[data-hero-slider]');
+    
+    if (heroContainer && typeof Flickity !== 'undefined') {
+      var flkty = new Flickity(heroContainer, {
+        cellAlign: 'left',
+        contain: true,
+        wrapAround: true,
+        prevNextButtons: false,
+        pageDots: false,
+        adaptiveHeight: true,
+        autoPlay: {{ section.settings.autoplay_speed | times: 1000 }}
+      });
+      
+      // أزرار السابق والتالي
+      var prevButton = document.querySelector('.hero-banner__arrow--prev');
+      var nextButton = document.querySelector('.hero-banner__arrow--next');
+      
+      if (prevButton) {
+        prevButton.addEventListener('click', function() {
+          flkty.previous();
+        });
+      }
+      
+      if (nextButton) {
+        nextButton.addEventListener('click', function() {
+          flkty.next();
+        });
+      }
+      
+      // نقاط التنقل
+      var dotsContainer = document.querySelector('.hero-banner__dots');
+      if (dotsContainer) {
+        var slidesCount = flkty.slides.length;
+        var dotsHtml = '';
+        
+        for (var i = 0; i < slidesCount; i++) {
+          dotsHtml += '<button class="hero-banner__dot' + (i === 0 ? ' is-active' : '') + '" data-slide-index="' + i + '" aria-label="{{ 'general.accessibility.go_to_slide' | t }} ' + (i + 1) + '"></button>';
+        }
+        
+        dotsContainer.innerHTML = dotsHtml;
+        
+        var dots = dotsContainer.querySelectorAll('.hero-banner__dot');
+        dots.forEach(function(dot) {
+          dot.addEventListener('click', function() {
+            var index = parseInt(this.getAttribute('data-slide-index'), 10);
+            flkty.select(index);
+          });
+        });
+        
+        flkty.on('select', function() {
+          dots.forEach(function(dot, i) {
+            dot.classList.toggle('is-active', i === flkty.selectedIndex);
+          });
+        });
+      }
+    }
+  });
+</script>
+
+<style>
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .hero-banner__slide {
+    position: relative;
+    width: 100%;
+    height: {{ section.settings.height }}px;
+    
+    @media screen and (max-width: 768px) {
+      height: {{ section.settings.mobile_height }}px;
+    }
+  }
+  
+  .hero-banner__image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .hero-banner__image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .hero-banner__content-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: {{ section.settings.content_alignment_vertical }};
+    text-align: {{ section.settings.content_alignment }};
+  }
+  
+  .hero-banner__content {
+    max-width: 600px;
+    padding: 40px;
+    color: {{ section.settings.text_color }};
+    
+    {% if section.settings.content_position == 'left' %}
+      margin-right: auto;
+    {% elsif section.settings.content_position == 'right' %}
+      margin-left: auto;
+    {% else %}
+      margin-left: auto;
+      margin-right: auto;
+    {% endif %}
+  }
+  
+  .hero-banner__subheading {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .hero-banner__heading {
+    margin-bottom: 20px;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+    
+    @media screen and (max-width: 768px) {
+      font-size: 32px;
+    }
+  }
+  
+  .hero-banner__text {
+    margin-bottom: 30px;
+  }
+  
+  .hero-banner__button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .hero-banner__controls {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  
+  .hero-banner__arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: #fff;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .hero-banner__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 20px;
+  }
+  
+  .hero-banner__dot {
+    width: 12px;
+    height: 12px;
+    margin: 0 5px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.is-active {
+      background-color: #fff;
+      transform: scale(1.2);
+    }
+  }
+  
+  /* Overlay for better text readability */
+  {% if section.settings.show_overlay %}
+  .hero-banner__image-container:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: {{ section.settings.overlay_color }};
+    opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }};
+  }
+  {% endif %}
+</style>
+
+{% schema %}
+{
+  "name": "البانر الرئيسي",
+  "class": "index-section",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "range",
+      "id": "height",
+      "label": "ارتفاع البانر",
+      "min": 400,
+      "max": 800,
+      "step": 20,
+      "default": 600,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "mobile_height",
+      "label": "ارتفاع البانر للجوال",
+      "min": 300,
+      "max": 600,
+      "step": 20,
+      "default": 400,
+      "unit": "px"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "إظهار طبقة التغطية",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "لون طبقة التغطية",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "شفافية طبقة التغطية",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "default": 30,
+      "unit": "%"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "موضع المحتوى",
+      "options": [
+        {
+          "value": "left",
+          "label": "يسار"
+        },
+        {
+          "value": "center",
+          "label": "وسط"
+        },
+        {
+          "value": "right",
+          "label": "يمين"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "محاذاة النص",
+      "options": [
+        {
+          "value": "left",
+          "label": "يسار"
+        },
+        {
+          "value": "center",
+          "label": "وسط"
+        },
+        {
+          "value": "right",
+          "label": "يمين"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment_vertical",
+      "label": "محاذاة عمودية",
+      "options": [
+        {
+          "value": "flex-start",
+          "label": "أعلى"
+        },
+        {
+          "value": "center",
+          "label": "وسط"
+        },
+        {
+          "value": "flex-end",
+          "label": "أسفل"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "تشغيل تلقائي للشرائح",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "تغيير الشرائح كل",
+      "min": 3,
+      "max": 9,
+      "step": 1,
+      "default": 5,
+      "unit": "s"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "شريحة",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "صورة"
+        },
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "عنوان فرعي",
+          "default": "أحدث التشكيلات"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "عنوان رئيسي",
+          "default": "أحذية رياضية بتصاميم عصرية"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "نص",
+          "default": "<p>اكتشف مجموعتنا الجديدة من الأحذية الرياضية المصممة لتلبية احتياجاتك اليومية مع راحة فائقة وأداء متميز.</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "نص الزر الأول",
+          "default": "تسوق الآن"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "رابط الزر الأول",
+          "default": "/collections/all"
+        },
+        {
+          "type": "text",
+          "id": "button_label_2",
+          "label": "نص الزر الثاني"
+        },
+        {
+          "type": "url",
+          "id": "button_link_2",
+          "label": "رابط الزر الثاني"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "البانر الرئيسي",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

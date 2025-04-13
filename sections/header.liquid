@@ -1,0 +1,262 @@
+{%- if section.settings.announcement_bar_enabled -%}
+  <div class="announcement-bar" style="background-color: {{ section.settings.color_bg }};">
+    <p class="announcement-bar__message" style="color: {{ section.settings.color_text }};">
+      {{ section.settings.announcement_text | escape }}
+      {%- if section.settings.announcement_link != blank -%}
+        <a href="{{ section.settings.announcement_link }}" class="announcement-bar__link">
+          {{ section.settings.announcement_link_text | escape }}
+        </a>
+      {%- endif -%}
+    </p>
+  </div>
+{%- endif -%}
+
+<header class="site-header {% if section.settings.enable_sticky_header %}site-header--sticky{% endif %} site-header--{{ section.settings.header_style }}" 
+  data-header-style="{{ section.settings.header_style }}"
+  role="banner">
+  <div class="container">
+    <div class="site-header__wrapper">
+      <!-- Mobile Menu Toggle -->
+      <div class="site-header__mobile-toggle">
+        <button type="button" class="mobile-menu-toggle" 
+          aria-controls="MobileNav" 
+          aria-expanded="false">
+          <span class="icon-hamburger" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span class="visually-hidden">{{ 'general.navigation.menu' | t }}</span>
+        </button>
+      </div>
+
+      <!-- Logo -->
+      <div class="site-header__logo-wrapper">
+        {% if section.settings.logo != blank %}
+          <a href="/" class="site-header__logo-link" itemscope itemtype="http://schema.org/Organization">
+            {% capture image_size %}{{ section.settings.logo_max_width }}x{% endcapture %}
+            <img class="site-header__logo-image" 
+              src="{{ section.settings.logo | img_url: image_size }}" 
+              srcset="{{ section.settings.logo | img_url: image_size }} 1x, {{ section.settings.logo | img_url: image_size, scale: 2 }} 2x" 
+              alt="{{ shop.name }}" 
+              itemprop="logo" 
+              style="max-width: {{ section.settings.logo_max_width }}px;">
+          </a>
+        {% else %}
+          <a href="/" class="site-header__logo-link site-header__logo-text" itemprop="url">
+            <span itemprop="name">{{ shop.name }}</span>
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Navigation -->
+      <nav class="site-header__nav" role="navigation">
+        <ul class="site-nav">
+          {% for link in linklists[section.settings.main_menu_link_list].links %}
+            {%- assign has_dropdown = false -%}
+            {%- if link.links.size > 0 -%}
+              {%- assign has_dropdown = true -%}
+            {%- endif -%}
+
+            <li class="site-nav__item {% if has_dropdown %}site-nav--has-dropdown{% endif %}">
+              <a href="{{ link.url }}" 
+                class="site-nav__link {% if link.active %}site-nav__link--active{% endif %}" 
+                {% if has_dropdown %}aria-haspopup="true" aria-expanded="false"{% endif %}>
+                {{ link.title }}
+                {% if has_dropdown %}
+                  <span class="icon-chevron-down" aria-hidden="true"></span>
+                {% endif %}
+              </a>
+
+              {% if has_dropdown %}
+                <ul class="site-nav__dropdown">
+                  {% for childlink in link.links %}
+                    <li>
+                      <a href="{{ childlink.url }}" 
+                        class="site-nav__link {% if childlink.active %}site-nav__link--active{% endif %}">
+                        {{ childlink.title }}
+                      </a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="site-header__actions">
+        <!-- Search -->
+        <div class="site-header__search">
+          <button type="button" class="search-toggle" aria-expanded="false">
+            <span class="icon-search" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ 'general.search.search' | t }}</span>
+          </button>
+          <div class="site-header__search-container" hidden>
+            <form action="/search" method="get" class="search-form" role="search">
+              <input type="search" 
+                name="q" 
+                id="SearchInput" 
+                class="search-form__input" 
+                placeholder="{{ 'general.search.placeholder' | t }}" 
+                aria-label="{{ 'general.search.placeholder' | t }}">
+              <button type="submit" class="search-form__submit">
+                <span class="icon-search" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ 'general.search.submit' | t }}</span>
+              </button>
+              <button type="button" class="search-form__close">
+                <span class="icon-close" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ 'general.accessibility.close' | t }}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Account -->
+        <div class="site-header__account">
+          {% if shop.customer_accounts_enabled %}
+            <a href="/account" class="site-header__account-link">
+              <span class="icon-user" aria-hidden="true"></span>
+              <span class="visually-hidden">{{ 'customer.account.title' | t }}</span>
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Cart -->
+        <div class="site-header__cart">
+          <a href="/cart" class="site-header__cart-link js-cart-trigger">
+            <span class="icon-cart" aria-hidden="true"></span>
+            <span class="visually-hidden">{{ 'layout.cart.title' | t }}</span>
+            <span class="cart-count" data-cart-count>
+              {{ cart.item_count }}
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Popup -->
+  <div class="search-popup" hidden>
+    <div class="search-popup__overlay"></div>
+    <div class="search-popup__container">
+      <form action="/search" method="get" class="search-popup__form" role="search">
+        <input type="search" 
+          name="q" 
+          id="SearchPopupInput" 
+          class="search-popup__input" 
+          placeholder="{{ 'general.search.placeholder' | t }}" 
+          aria-label="{{ 'general.search.placeholder' | t }}" 
+          autocomplete="off">
+        <button type="submit" class="search-popup__submit">
+          <span class="icon-search" aria-hidden="true"></span>
+          <span class="visually-hidden">{{ 'general.search.submit' | t }}</span>
+        </button>
+        <button type="button" class="search-popup__close">
+          <span class="icon-close" aria-hidden="true"></span>
+          <span class="visually-hidden">{{ 'general.accessibility.close' | t }}</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+
+{% schema %}
+{
+  "name": "الهيدر",
+  "class": "section-header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "شريط الإعلانات"
+    },
+    {
+      "type": "checkbox",
+      "id": "announcement_bar_enabled",
+      "label": "إظهار شريط الإعلانات",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "announcement_text",
+      "label": "نص الإعلان",
+      "default": "أعلن عن شحن مجاني أو خصم أو عرض ترويجي هنا"
+    },
+    {
+      "type": "url",
+      "id": "announcement_link",
+      "label": "رابط الإعلان"
+    },
+    {
+      "type": "text",
+      "id": "announcement_link_text",
+      "label": "نص الرابط",
+      "default": "اطلع على التفاصيل"
+    },
+    {
+      "type": "color",
+      "id": "color_bg",
+      "label": "لون الخلفية",
+      "default": "#339af0"
+    },
+    {
+      "type": "color",
+      "id": "color_text",
+      "label": "لون النص",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "الهيدر"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "شعار الموقع"
+    },
+    {
+      "type": "range",
+      "id": "logo_max_width",
+      "label": "أقصى عرض للشعار",
+      "min": 50,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "default": 150
+    },
+    {
+      "type": "link_list",
+      "id": "main_menu_link_list",
+      "label": "قائمة التنقل",
+      "default": "main-menu"
+    },
+    {
+      "type": "select",
+      "id": "header_style",
+      "label": "نمط الهيدر",
+      "options": [
+        {
+          "value": "classic",
+          "label": "كلاسيكي"
+        },
+        {
+          "value": "minimal",
+          "label": "مبسط"
+        },
+        {
+          "value": "centered",
+          "label": "متمركز"
+        }
+      ],
+      "default": "classic"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "label": "تفعيل رأس الصفحة الثابت",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

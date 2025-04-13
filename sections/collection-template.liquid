@@ -1,0 +1,364 @@
+ {%- liquid
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+  assign grid_class = 'collection-grid__item--' | append: section.settings.grid
+-%}
+
+<div class="collection-template" data-section-id="{{ section.id }}" data-section-type="collection">
+  <div class="container">
+    <div class="collection-layout">
+      <!-- فلاتر التصفية - الجانبي -->
+      <div class="collection-sidebar">
+        <div class="collection-sidebar__inner" data-sticky-sidebar>
+          <div class="collection-filters" data-collection-filters>
+            <!-- عنوان الفلاتر للهواتف -->
+            <div class="collection-filters__header">
+              <h3 class="collection-filters__title">{{ 'collections.filters.title' | t }}</h3>
+              <button type="button" class="collection-filters__close" data-collection-filters-close>
+                <span class="icon-close" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ 'collections.filters.close_filters' | t }}</span>
+              </button>
+            </div>
+            
+            <!-- فلتر الأقسام -->
+            {% if section.settings.show_collection_list %}
+              <div class="collection-filter collection-filter--collections">
+                <div class="collection-filter__header">
+                  <h4 class="collection-filter__title">{{ 'collections.filters.collections' | t }}</h4>
+                  <button type="button" class="collection-filter__toggle" data-toggle-filter aria-expanded="true">
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                    <span class="visually-hidden">{{ 'collections.filters.toggle_filter' | t }}</span>
+                  </button>
+                </div>
+                
+                <div class="collection-filter__content">
+                  <ul class="collection-filter__list">
+                    {% for collection_item in collections %}
+                      {% if collection_item.title != 'الصفحة الرئيسية' and collection_item.title != 'جميع المنتجات' %}
+                        <li class="collection-filter__item{% if collection.handle == collection_item.handle %} is-active{% endif %}">
+                          <a href="{{ collection_item.url }}" class="collection-filter__link">
+                            {{ collection_item.title }} 
+                            {% if section.settings.show_collection_count %}
+                              <span class="collection-filter__count">{{ collection_item.products_count }}</span>
+                            {% endif %}
+                          </a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+            
+            <!-- فلتر السعر -->
+            {% if section.settings.show_price_filter %}
+              <div class="collection-filter collection-filter--price">
+                <div class="collection-filter__header">
+                  <h4 class="collection-filter__title">{{ 'collections.filters.price' | t }}</h4>
+                  <button type="button" class="collection-filter__toggle" data-toggle-filter aria-expanded="true">
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                    <span class="visually-hidden">{{ 'collections.filters.toggle_filter' | t }}</span>
+                  </button>
+                </div>
+                
+                <div class="collection-filter__content">
+                  <div class="price-range" data-price-range>
+                    <div class="price-range__inputs">
+                      <div class="price-range__field">
+                        <label class="price-range__label" for="PriceMin">{{ 'collections.filters.min_price' | t }}</label>
+                        <input type="number" 
+                          id="PriceMin" 
+                          class="price-range__input" 
+                          name="price_min" 
+                          min="0" 
+                          placeholder="{{ 'collections.filters.min_placeholder' | t }}" 
+                          data-price-min
+                          aria-label="{{ 'collections.filters.min_price' | t }}">
+                      </div>
+                      <div class="price-range__field">
+                        <label class="price-range__label" for="PriceMax">{{ 'collections.filters.max_price' | t }}</label>
+                        <input type="number" 
+                          id="PriceMax" 
+                          class="price-range__input" 
+                          name="price_max" 
+                          min="0" 
+                          placeholder="{{ 'collections.filters.max_placeholder' | t }}" 
+                          data-price-max
+                          aria-label="{{ 'collections.filters.max_price' | t }}">
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn--small price-range__button" data-price-range-apply>
+                      {{ 'collections.filters.apply' | t }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+            
+            <!-- فلاتر الخصائص -->
+            {% for filter in collection.filters %}
+              <div class="collection-filter">
+                <div class="collection-filter__header">
+                  <h4 class="collection-filter__title">{{ filter.label }}</h4>
+                  <button type="button" class="collection-filter__toggle" data-toggle-filter aria-expanded="true">
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                    <span class="visually-hidden">{{ 'collections.filters.toggle_filter' | t }}</span>
+                  </button>
+                </div>
+                
+                <div class="collection-filter__content">
+                  <ul class="collection-filter__list">
+                    {% case filter.type %}
+                      {% when 'list' %}
+                        {% if filter.active_values.size > 0 %}
+                          <li class="collection-filter__clear">
+                            <a href="{{ filter.url_to_remove }}" class="collection-filter__clear-link">
+                              {{ 'collections.filters.clear' | t: filter: filter.label }}
+                            </a>
+                          </li>
+                        {% endif %}
+                    
+                        {% for filter_value in filter.values %}
+                          {% if filter_value.count > 0 %}
+                            <li class="collection-filter__item{% if filter_value.active %} is-active{% endif %}">
+                              <a href="{{ filter_value.url }}" class="collection-filter__link">
+                                {{ filter_value.label }}
+                                {% if section.settings.show_filter_counts %}
+                                  <span class="collection-filter__count">{{ filter_value.count }}</span>
+                                {% endif %}
+                              </a>
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+                      
+                      {% when 'price_range' %}
+                        {% if filter.min_value.value or filter.max_value.value %}
+                          <li class="collection-filter__clear">
+                            <a href="{{ filter.url_to_remove }}" class="collection-filter__clear-link">
+                              {{ 'collections.filters.clear' | t: filter: filter.label }}
+                            </a>
+                          </li>
+                        {% endif %}
+                      
+                        <div class="price-range" data-price-range>
+                          <div class="price-range__inputs">
+                            <div class="price-range__field">
+                              <label class="price-range__label" for="Filter-{{ filter.label }}-Min">{{ 'collections.filters.min_price' | t }}</label>
+                              <input type="number" 
+                                id="Filter-{{ filter.label }}-Min" 
+                                class="price-range__input" 
+                                name="{{ filter.min_value.param_name }}" 
+                                min="0" 
+                                {% if filter.min_value.value %}value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"{% endif %} 
+                                placeholder="{{ 'collections.filters.min_placeholder' | t }}" 
+                                data-price-min
+                                aria-label="{{ 'collections.filters.min_price' | t }}">
+                            </div>
+                            <div class="price-range__field">
+                              <label class="price-range__label" for="Filter-{{ filter.label }}-Max">{{ 'collections.filters.max_price' | t }}</label>
+                              <input type="number" 
+                                id="Filter-{{ filter.label }}-Max" 
+                                class="price-range__input" 
+                                name="{{ filter.max_value.param_name }}" 
+                                min="0" 
+                                {% if filter.max_value.value %}value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"{% endif %} 
+                                placeholder="{{ 'collections.filters.max_placeholder' | t }}" 
+                                data-price-max
+                                aria-label="{{ 'collections.filters.max_price' | t }}">
+                            </div>
+                          </div>
+                          <button type="button" class="btn btn--small price-range__button" data-price-range-apply>
+                            {{ 'collections.filters.apply' | t }}
+                          </button>
+                        </div>
+                    {% endcase %}
+                  </ul>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- محتوى المجموعة -->
+      <div class="collection-content">
+        <!-- رأس المجموعة -->
+        <div class="collection-toolbar">
+          <!-- زر إظهار الفلاتر (للهواتف) -->
+          <div class="collection-toolbar__item collection-toolbar__item--filters-toggle">
+            <button type="button" class="collection-filters-toggle" data-collection-filters-toggle>
+              <span class="icon-filter" aria-hidden="true"></span>
+              {{ 'collections.filters.title' | t }}
+            </button>
+          </div>
+          
+          <!-- عدد المنتجات -->
+          <div class="collection-toolbar__item collection-toolbar__item--count">
+            <span class="collection-toolbar__count">
+              {{ 'collections.general.products_count' | t: count: collection.products_count }}
+            </span>
+          </div>
+          
+          <!-- الترتيب -->
+          <div class="collection-toolbar__item collection-toolbar__item--sort">
+            <div class="collection-sort">
+              <label for="SortBy" class="collection-sort__label">{{ 'collections.sorting.title' | t }}</label>
+              <div class="collection-sort__select-wrapper">
+                <select id="SortBy" class="collection-sort__select" aria-describedby="a11y-refresh-page-message">
+                  {%- for option in collection.sort_options -%}
+                    <option 
+                      value="{{ option.value }}" 
+                      {% if option.value == sort_by %}selected="selected"{% endif %}>
+                      {{ option.name }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                <span class="icon-chevron-down" aria-hidden="true"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- عرض المنتجات -->
+          <div class="collection-toolbar__item collection-toolbar__item--view">
+            <div class="collection-view" data-collection-view>
+              <button type="button" 
+                class="collection-view__button collection-view__button--grid{% if section.settings.grid == '1-3' %} is-active{% endif %}" 
+                title="{{ 'collections.view.grid' | t }}" 
+                aria-label="{{ 'collections.view.grid' | t }}" 
+                data-view="grid">
+                <span class="icon-grid" aria-hidden="true"></span>
+              </button>
+              <button type="button" 
+                class="collection-view__button collection-view__button--list{% if section.settings.grid == '1-1' %} is-active{% endif %}" 
+                title="{{ 'collections.view.list' | t }}" 
+                aria-label="{{ 'collections.view.list' | t }}" 
+                data-view="list">
+                <span class="icon-list" aria-hidden="true"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- قائمة المنتجات -->
+        <div class="collection-products">
+          <div class="collection-grid">
+            {% paginate collection.products by section.settings.products_per_page %}
+              {%- if collection.products.size == 0 -%}
+                <div class="collection-empty">
+                  <h2 class="collection-empty__title">{{ 'collections.general.no_products' | t }}</h2>
+                  <p class="collection-empty__text">{{ 'collections.general.no_products_text' | t }}</p>
+                  <p class="collection-empty__link">
+                    <a href="/collections/all" class="btn btn--primary">{{ 'collections.general.view_all_products' | t }}</a>
+                  </p>
+                </div>
+              {%- else -%}
+                {%- for product in collection.products -%}
+                  <div class="collection-grid__item {{ grid_class }}">
+                    {% render 'product-card', 
+                      product: product, 
+                      show_vendor: section.settings.show_vendor, 
+                      show_rating: section.settings.show_rating,
+                      grid_class: grid_class
+                    %}
+                  </div>
+                {%- endfor -%}
+              {%- endif -%}
+              
+              <!-- ترقيم الصفحات -->
+              {%- if paginate.pages > 1 -%}
+                <div class="collection-pagination">
+                  {% render 'pagination', paginate: paginate %}
+                </div>
+              {%- endif -%}
+            {% endpaginate %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "صفحة المجموعة",
+  "class": "section-collection-template",
+  "settings": [
+    {
+      "type": "header",
+      "content": "عرض المنتجات"
+    },
+    {
+      "type": "select",
+      "id": "grid",
+      "label": "تنسيق العرض",
+      "options": [
+        {
+          "value": "1-3",
+          "label": "3 منتجات في الصف"
+        },
+        {
+          "value": "1-4",
+          "label": "4 منتجات في الصف"
+        },
+        {
+          "value": "1-2",
+          "label": "2 منتج في الصف"
+        },
+        {
+          "value": "1-1",
+          "label": "قائمة"
+        }
+      ],
+      "default": "1-3"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "عدد المنتجات في الصفحة",
+      "min": 6,
+      "max": 48,
+      "step": 6,
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "إظهار البائع",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "إظهار التقييم",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "الفلاتر والتصفية"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_list",
+      "label": "إظهار قائمة المجموعات",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_count",
+      "label": "إظهار عدد منتجات المجموعة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_filter_counts",
+      "label": "إظهار عدد المنتجات في الفلتر",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price_filter",
+      "label": "إظهار فلتر السعر",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

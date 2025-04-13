@@ -1,0 +1,317 @@
+<div class="collection-list-section" data-section-id="{{ section.id }}" data-section-type="collection-list">
+  <div class="container">
+    <div class="section-header">
+      {%- if section.settings.title != blank -%}
+        <h2 class="section-header__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      
+      {%- if section.settings.subtitle != blank -%}
+        <div class="section-header__subtitle">{{ section.settings.subtitle }}</div>
+      {%- endif -%}
+    </div>
+    
+    <div class="collection-list">
+      {%- for block in section.blocks -%}
+        {%- assign collection = collections[block.settings.collection] -%}
+        {%- if collection != blank -%}
+          <div class="collection-list__item" {{ block.shopify_attributes }}>
+            <a href="{{ collection.url }}" class="collection-list__link">
+              <div class="collection-list__image-wrapper">
+                {%- if collection.image != blank -%}
+                  <div class="collection-list__image">
+                    <img srcset="{{ collection.image | img_url: '360x' }} 360w,
+                                 {{ collection.image | img_url: '540x' }} 540w,
+                                 {{ collection.image | img_url: '720x' }} 720w,
+                                 {{ collection.image | img_url: '900x' }} 900w"
+                         src="{{ collection.image | img_url: '540x' }}"
+                         sizes="(min-width: 992px) 33vw, (min-width: 768px) 50vw, 100vw"
+                         alt="{{ collection.title | escape }}"
+                         loading="lazy"
+                         width="{{ collection.image.width }}"
+                         height="{{ collection.image.height }}">
+                  </div>
+                {%- elsif collection.products.first and collection.products.first.featured_image != blank -%}
+                  <div class="collection-list__image">
+                    <img srcset="{{ collection.products.first.featured_image | img_url: '360x' }} 360w,
+                                 {{ collection.products.first.featured_image | img_url: '540x' }} 540w,
+                                 {{ collection.products.first.featured_image | img_url: '720x' }} 720w,
+                                 {{ collection.products.first.featured_image | img_url: '900x' }} 900w"
+                         src="{{ collection.products.first.featured_image | img_url: '540x' }}"
+                         sizes="(min-width: 992px) 33vw, (min-width: 768px) 50vw, 100vw"
+                         alt="{{ collection.title | escape }}"
+                         loading="lazy"
+                         width="{{ collection.products.first.featured_image.width }}"
+                         height="{{ collection.products.first.featured_image.height }}">
+                  </div>
+                {%- else -%}
+                  <div class="collection-list__image collection-list__image--placeholder">
+                    {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+                  </div>
+                {%- endif -%}
+                
+                <div class="collection-list__overlay"></div>
+              </div>
+              
+              <div class="collection-list__content">
+                <h3 class="collection-list__title">{{ collection.title }}</h3>
+                
+                {%- if section.settings.show_description and collection.description != blank -%}
+                  <div class="collection-list__description">
+                    {{ collection.description | strip_html | truncatewords: 12 }}
+                  </div>
+                {%- endif -%}
+                
+                {%- if section.settings.show_product_count -%}
+                  <div class="collection-list__product-count">
+                    {{ 'collections.general.product_count' | t: count: collection.products_count }}
+                  </div>
+                {%- endif -%}
+                
+                {%- if section.settings.show_button -%}
+                  <div class="collection-list__button btn btn--secondary">
+                    {{ 'collections.general.view_collection' | t }}
+                  </div>
+                {%- endif -%}
+              </div>
+            </a>
+          </div>
+        {%- else -%}
+          <div class="collection-list__item" {{ block.shopify_attributes }}>
+            <div class="collection-list__placeholder">
+              {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+              <div class="collection-list__placeholder-text">{{ 'collections.general.add_collection' | t }}</div>
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  .collection-list-section {
+    padding: 60px 0;
+  }
+  
+  .collection-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+    }
+  }
+  
+  .collection-list__item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  .collection-list__link {
+    display: block;
+    position: relative;
+    height: 0;
+    padding-bottom: 100%;
+    overflow: hidden;
+  }
+  
+  .collection-list__image-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .collection-list__image {
+    width: 100%;
+    height: 100%;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+  }
+  
+  .collection-list__link:hover .collection-list__image img {
+    transform: scale(1.05);
+  }
+  
+  .collection-list__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.5));
+    z-index: 1;
+  }
+  
+  .collection-list__content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    z-index: 2;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .collection-list__title {
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .collection-list__description {
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.4;
+    opacity: 0.9;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .collection-list__product-count {
+    margin-bottom: 15px;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+  
+  .collection-list__button {
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      background-color: #fff;
+      transform: translateY(-2px);
+    }
+  }
+  
+  .collection-list__placeholder {
+    position: relative;
+    height: 0;
+    padding-bottom: 100%;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    
+    .placeholder-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
+  }
+  
+  .collection-list__placeholder-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    color: #777;
+    text-align: center;
+    width: 80%;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "قائمة المجموعات",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "العنوان",
+      "default": "تصفح حسب الفئات"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "عنوان فرعي",
+      "default": "اكتشف مجموعاتنا المتنوعة من الأحذية الرياضية"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "عدد الأعمدة",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "إظهار وصف المجموعة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "إظهار عدد المنتجات",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "إظهار زر التصفح",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "مجموعة",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "المجموعة"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "قائمة المجموعات",
+      "blocks": [
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

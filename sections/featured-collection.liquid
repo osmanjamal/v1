@@ -1,0 +1,236 @@
+<div class="featured-collection" data-section-id="{{ section.id }}" data-section-type="featured-collection">
+  <div class="container">
+    <div class="section-header">
+      {%- if section.settings.title != blank -%}
+        <h2 class="section-header__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      
+      {%- if section.settings.subtitle != blank -%}
+        <div class="section-header__subtitle">{{ section.settings.subtitle }}</div>
+      {%- endif -%}
+      
+      {%- if section.settings.view_all_link != blank and section.settings.view_all_text != blank -%}
+        <a href="{{ section.settings.view_all_link }}" class="section-header__link">
+          {{ section.settings.view_all_text }}
+          <span class="icon-arrow-right" aria-hidden="true"></span>
+        </a>
+      {%- endif -%}
+    </div>
+    
+    <div class="featured-collection__grid">
+      {%- assign collection = collections[section.settings.collection] -%}
+      {%- assign product_limit = section.settings.products_to_show -%}
+      
+      {%- if collection != blank -%}
+        {%- assign grid_item_width = 'collection-grid__item--1-' | append: section.settings.products_per_row -%}
+        
+        {%- if section.settings.layout == 'slider' -%}
+          <div class="featured-collection__slider" data-featured-collection-slider>
+            {%- for product in collection.products limit: product_limit -%}
+              <div class="featured-collection__slide">
+                {%- render 'product-card',
+                  product: product,
+                  show_vendor: section.settings.show_vendor,
+                  show_rating: section.settings.show_rating,
+                  grid_class: grid_item_width
+                -%}
+              </div>
+            {%- endfor -%}
+          </div>
+          
+          <div class="featured-collection__slider-controls">
+            <button type="button" class="featured-collection__slider-control featured-collection__slider-control--prev" aria-label="{{ 'general.accessibility.previous_product' | t }}">
+              <span class="icon-chevron-left" aria-hidden="true"></span>
+            </button>
+            
+            <div class="featured-collection__slider-pagination"></div>
+            
+            <button type="button" class="featured-collection__slider-control featured-collection__slider-control--next" aria-label="{{ 'general.accessibility.next_product' | t }}">
+              <span class="icon-chevron-right" aria-hidden="true"></span>
+            </button>
+          </div>
+        {%- else -%}
+          <div class="collection-grid">
+            {%- for product in collection.products limit: product_limit -%}
+              <div class="collection-grid__item {{ grid_item_width }}">
+                {%- render 'product-card',
+                  product: product,
+                  show_vendor: section.settings.show_vendor,
+                  show_rating: section.settings.show_rating,
+                  grid_class: grid_item_width
+                -%}
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      {%- else -%}
+        <div class="featured-collection__placeholder">
+          <p>{{ 'collections.general.no_matches' | t }}</p>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{%- if section.settings.layout == 'slider' -%}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var sliderContainer = document.querySelector('[data-featured-collection-slider]');
+    var paginationContainer = document.querySelector('.featured-collection__slider-pagination');
+    
+    if (sliderContainer && typeof Flickity !== 'undefined') {
+      var flkty = new Flickity(sliderContainer, {
+        cellAlign: 'left',
+        contain: true,
+        pageDots: false,
+        prevNextButtons: false,
+        wrapAround: true,
+        groupCells: {% if section.settings.products_per_row == '4' %}2{% else %}1{% endif %},
+        adaptiveHeight: false
+      });
+      
+      // أزرار التنقل
+      var prevButton = document.querySelector('.featured-collection__slider-control--prev');
+      var nextButton = document.querySelector('.featured-collection__slider-control--next');
+      
+      if (prevButton) {
+        prevButton.addEventListener('click', function() {
+          flkty.previous();
+        });
+      }
+      
+      if (nextButton) {
+        nextButton.addEventListener('click', function() {
+          flkty.next();
+        });
+      }
+      
+      // نقاط التنقل
+      if (paginationContainer) {
+        var slidesCount = flkty.slides.length;
+        var dotsHtml = '';
+        
+        for (var i = 0; i < slidesCount; i++) {
+          dotsHtml += '<button class="featured-collection__slider-dot' + (i === 0 ? ' is-active' : '') + '" data-slide-index="' + i + '"></button>';
+        }
+        
+        paginationContainer.innerHTML = dotsHtml;
+        
+        var dots = paginationContainer.querySelectorAll('.featured-collection__slider-dot');
+        dots.forEach(function(dot) {
+          dot.addEventListener('click', function() {
+            var index = parseInt(this.getAttribute('data-slide-index'), 10);
+            flkty.select(index);
+          });
+        });
+        
+        flkty.on('select', function() {
+          dots.forEach(function(dot, i) {
+            dot.classList.toggle('is-active', i === flkty.selectedIndex);
+          });
+        });
+      }
+    }
+  });
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "مجموعة منتجات مميزة",
+  "class": "featured-collection-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "العنوان",
+      "default": "منتجات مميزة"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "عنوان فرعي",
+      "default": "عرض خاص لهذا الأسبوع"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "المجموعة"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "نمط العرض",
+      "options": [
+        {
+          "value": "grid",
+          "label": "شبكة"
+        },
+        {
+          "value": "slider",
+          "label": "شرائح"
+        }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "عدد المنتجات المعروضة",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "products_per_row",
+      "label": "عدد المنتجات في الصف",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "إظهار البائع",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "إظهار التقييم",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_text",
+      "label": "نص عرض الكل",
+      "default": "عرض الكل"
+    },
+    {
+      "type": "url",
+      "id": "view_all_link",
+      "label": "رابط عرض الكل"
+    }
+  ],
+  "presets": [
+    {
+      "name": "مجموعة منتجات مميزة",
+      "category": "مجموعة"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,176 @@
+{% comment %}
+  استخدم هذا القالب لعرض المنتجات في صفحات المجموعات، الصفحة الرئيسية، ونتائج البحث
+  المدخلات:
+  - product: المنتج المراد عرضه
+  - show_vendor: إظهار البائع (true/false)
+  - show_rating: إظهار التقييم (true/false)
+  - grid_class: فئة CSS للشبكة (اختياري)
+{% endcomment %}
+
+{%- assign product_url = product.url | within: collection -%}
+{%- assign featured_image = product.featured_media.preview_image -%}
+
+<div class="product-card {% if grid_class %}{{ grid_class }}{% endif %}" data-product-id="{{ product.id }}">
+  <div class="product-card__inner">
+    
+    <!-- صورة المنتج -->
+    <div class="product-card__image-container">
+      <a href="{{ product_url }}" class="product-card__link" title="{{ product.title | escape }}">
+        {% if featured_image != blank %}
+          <div class="product-card__image">
+            <img class="lazyload"
+              src="{{ featured_image | img_url: '300x300' }}"
+              data-src="{{ featured_image | img_url: '600x600' }}"
+              data-widths="[180, 360, 540, 720, 900, 1080]"
+              data-aspectratio="{{ featured_image.aspect_ratio }}"
+              data-sizes="auto"
+              alt="{{ featured_image.alt | escape }}"
+              width="{{ featured_image.width }}"
+              height="{{ featured_image.height }}">
+          </div>
+          
+          <!-- صورة ثانية (إذا وجدت) -->
+          {% if product.media.size > 1 %}
+            <div class="product-card__image product-card__image--secondary">
+              <img class="lazyload"
+                data-src="{{ product.media[1].preview_image | img_url: '600x600' }}"
+                data-widths="[180, 360, 540, 720, 900, 1080]"
+                data-aspectratio="{{ product.media[1].preview_image.aspect_ratio }}"
+                data-sizes="auto"
+                alt="{{ product.media[1].alt | escape }}"
+                width="{{ product.media[1].preview_image.width }}"
+                height="{{ product.media[1].preview_image.height }}">
+            </div>
+          {% endif %}
+        {% else %}
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg product-card__image' }}
+        {% endif %}
+      </a>
+      
+      <!-- شارات المنتج (تخفيض، جديد، نفدت الكمية) -->
+      <div class="product-card__badges">
+        {% if product.available == false %}
+          <span class="badge badge--sold-out">{{ 'products.product.sold_out' | t }}</span>
+        {% endif %}
+        
+        {% if product.compare_at_price > product.price %}
+          <span class="badge badge--sale">
+            {% if settings.sale_badge_type == 'percentage' %}
+              {% assign save_percentage = product.compare_at_price | minus: product.price | times: 100 | divided_by: product.compare_at_price | round %}
+              {{ 'products.product.save_percentage' | t: percentage: save_percentage }}
+            {% else %}
+              {{ 'products.product.on_sale' | t }}
+            {% endif %}
+          </span>
+        {% endif %}
+        
+        {% if product.created_at > settings.new_product_days %}
+          <span class="badge badge--new">{{ 'products.product.new' | t }}</span>
+        {% endif %}
+      </div>
+      
+      <!-- أزرار إجراءات سريعة -->
+      <div class="product-card__actions">
+        {% if product.available %}
+          <button type="button" class="btn btn--circle js-quick-add-to-cart" 
+            data-product-id="{{ product.id }}"
+            data-variant-id="{{ product.first_available_variant.id }}"
+            aria-label="{{ 'products.product.add_to_cart' | t }}">
+            <span class="icon-cart" aria-hidden="true"></span>
+          </button>
+        {% endif %}
+        
+        <button type="button" class="btn btn--circle js-quick-view" 
+          data-product-handle="{{ product.handle }}"
+          aria-label="{{ 'products.product.quick_view' | t }}">
+          <span class="icon-eye" aria-hidden="true"></span>
+        </button>
+        
+        <button type="button" class="btn btn--circle js-add-to-wishlist" 
+          data-product-id="{{ product.id }}"
+          aria-label="{{ 'products.product.add_to_wishlist' | t }}">
+          <span class="icon-heart" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- معلومات المنتج -->
+    <div class="product-card__info">
+      <div class="product-card__top">
+        {% if show_vendor and product.vendor %}
+          <div class="product-card__vendor">
+            <a href="{{ product.vendor | url_for_vendor }}">{{ product.vendor }}</a>
+          </div>
+        {% endif %}
+        
+        {% if show_rating and product.metafields.reviews.rating %}
+          <div class="product-card__rating">
+            <span class="rating" aria-label="{{ 'products.product.star_reviews_info' | t: rating_value: product.metafields.reviews.rating.value, rating_max: product.metafields.reviews.rating.value.scale_max }}">
+              {% for i in (1..5) %}
+                <span class="icon-star {% if product.metafields.reviews.rating.value >= i %}icon-star--filled{% endif %}" aria-hidden="true"></span>
+              {% endfor %}
+            </span>
+            <span class="rating__count">
+              ({{ product.metafields.reviews.rating_count }})
+            </span>
+          </div>
+        {% endif %}
+      </div>
+      
+      <h3 class="product-card__title">
+        <a href="{{ product_url }}">{{ product.title }}</a>
+      </h3>
+      
+      <div class="product-card__price">
+        {% if product.available %}
+          {% if product.compare_at_price > product.price %}
+            <span class="product-card__price-item product-card__price--sale">
+              {{ product.price | money }}
+            </span>
+            <span class="product-card__price-item product-card__price--compare">
+              {{ product.compare_at_price | money }}
+            </span>
+          {% else %}
+            <span class="product-card__price-item">
+              {{ product.price | money }}
+            </span>
+          {% endif %}
+        {% else %}
+          <span class="product-card__price-item product-card__price--soldout">
+            {{ 'products.product.sold_out' | t }}
+          </span>
+        {% endif %}
+      </div>
+      
+      <!-- ألوان المنتج المتوفرة -->
+      {% if product.options_by_name['Color'].values.size > 0 and product.options_by_name contains 'Color' %}
+        <div class="product-card__colors">
+          <div class="color-swatches">
+            {% assign limit = 4 %}
+            {% for value in product.options_by_name['Color'].values limit: limit %}
+              {% assign color_swatch_fallback = value | downcase %}
+              {% assign color_swatch_image = color_swatch_fallback | append: '.png' | asset_img_url: '50x' | prepend: 'https:' %}
+              
+              <div class="color-swatch">
+                <a href="{{ product_url }}?variant={{ product.variants[forloop.index0].id }}" 
+                  title="{{ value | escape }}"
+                  class="color-swatch__link"
+                  data-variant-id="{{ product.variants[forloop.index0].id }}">
+                  <span class="color-swatch__color" 
+                    style="background-color: {{ value | handle }}; background-image: url({{ color_swatch_image }});">
+                  </span>
+                </a>
+              </div>
+            {% endfor %}
+            
+            {% if product.options_by_name['Color'].values.size > limit %}
+              <a href="{{ product_url }}" class="color-swatch__more" title="{{ 'products.product.more_colors' | t }}">
+                +{{ product.options_by_name['Color'].values.size | minus: limit }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

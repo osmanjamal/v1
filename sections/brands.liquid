@@ -1,0 +1,236 @@
+<div class="brands-section" data-section-id="{{ section.id }}" data-section-type="brands">
+  <div class="container">
+    <div class="section-header">
+      {%- if section.settings.title != blank -%}
+        <h2 class="section-header__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      
+      {%- if section.settings.subtitle != blank -%}
+        <div class="section-header__subtitle">{{ section.settings.subtitle }}</div>
+      {%- endif -%}
+    </div>
+    
+    <div class="brands" data-brands-slider>
+      {%- for block in section.blocks -%}
+        <div class="brand" {{ block.shopify_attributes }}>
+          {%- if block.settings.link != blank -%}
+            <a href="{{ block.settings.link }}" class="brand__link" target="_blank" rel="noopener">
+          {%- endif -%}
+            
+            {%- if block.settings.image != blank -%}
+              <div class="brand__image">
+                <img src="{{ block.settings.image | img_url: '200x' }}"
+                     alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                     width="{{ block.settings.image.width }}"
+                     height="{{ block.settings.image.height }}"
+                     loading="lazy">
+              </div>
+            {%- else -%}
+              <div class="brand__placeholder">
+                {{ 'logo' | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+            {%- endif -%}
+            
+            {%- if block.settings.title != blank and section.settings.show_brand_names -%}
+              <div class="brand__title">{{ block.settings.title }}</div>
+            {%- endif -%}
+            
+          {%- if block.settings.link != blank -%}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  .brands-section {
+    padding: 60px 0;
+    background-color: {{ section.settings.background_color }};
+  }
+  
+  .brands {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: -15px;
+  }
+  
+  .brand {
+    padding: 15px;
+    width: 50%;
+    max-width: 200px;
+    
+    @media (min-width: 576px) {
+      width: 33.333%;
+    }
+    
+    @media (min-width: 768px) {
+      width: 25%;
+    }
+    
+    @media (min-width: 992px) {
+      width: 20%;
+    }
+  }
+  
+  .brand__link {
+    display: block;
+    text-align: center;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+  
+  .brand__image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    margin-bottom: 10px;
+    
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      {% if section.settings.grayscale %}
+        filter: grayscale(100%);
+        opacity: 0.7;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          filter: grayscale(0%);
+          opacity: 1;
+        }
+      {% endif %}
+    }
+  }
+  
+  .brand__placeholder {
+    width: 100%;
+    height: 80px;
+    
+    .placeholder-svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+  
+  .brand__title {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: {{ section.settings.text_color }};
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var brandsContainer = document.querySelector('[data-brands-slider]');
+    
+    if (brandsContainer && typeof Flickity !== 'undefined' && window.innerWidth >= 768) {
+      var flkty = new Flickity(brandsContainer, {
+        cellAlign: 'center',
+        contain: true,
+        pageDots: false,
+        prevNextButtons: false,
+        wrapAround: true,
+        autoPlay: 3000,
+        groupCells: true
+      });
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "العلامات التجارية",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      ""label": "العنوان",
+      "default": "العلامات التجارية"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "عنوان فرعي",
+      "default": "نقدم أفضل العلامات التجارية العالمية"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "لون الخلفية",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#333333"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_brand_names",
+      "label": "إظهار أسماء العلامات التجارية",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "grayscale",
+      "label": "تطبيق التدرج الرمادي على الشعارات",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "brand",
+      "name": "علامة تجارية",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "شعار العلامة التجارية"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "اسم العلامة التجارية",
+          "default": "اسم العلامة التجارية"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "رابط"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "العلامات التجارية",
+      "blocks": [
+        {
+          "type": "brand"
+        },
+        {
+          "type": "brand"
+        },
+        {
+          "type": "brand"
+        },
+        {
+          "type": "brand"
+        },
+        {
+          "type": "brand"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

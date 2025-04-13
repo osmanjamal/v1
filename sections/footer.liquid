@@ -1,0 +1,459 @@
+ {%- if section.settings.newsletter_enable -%}
+  <div class="newsletter-section">
+    <div class="container">
+      <div class="newsletter-section__inner">
+        <div class="newsletter-section__content">
+          {%- if section.settings.newsletter_heading != blank -%}
+            <h2 class="newsletter-section__heading">{{ section.settings.newsletter_heading }}</h2>
+          {%- endif -%}
+          
+          {%- if section.settings.newsletter_text != blank -%}
+            <div class="newsletter-section__text">
+              {{ section.settings.newsletter_text }}
+            </div>
+          {%- endif -%}
+        </div>
+        
+        <div class="newsletter-section__form">
+          {%- form 'customer', id: 'newsletter-form', class: 'newsletter-form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            
+            <div class="newsletter-form__fields">
+              <div class="newsletter-form__field-wrapper">
+                <label class="visually-hidden" for="NewsletterEmail">{{ 'general.newsletter.email_placeholder' | t }}</label>
+                <input type="email"
+                  name="contact[email]"
+                  id="NewsletterEmail"
+                  class="newsletter-form__field"
+                  value="{% if customer %}{{ customer.email }}{% endif %}"
+                  placeholder="{{ 'general.newsletter.email_placeholder' | t }}"
+                  required>
+              </div>
+              
+              <div class="newsletter-form__button-wrapper">
+                <button type="submit" class="newsletter-form__button btn btn--primary" name="commit">
+                  {{ 'general.newsletter.subscribe' | t }}
+                </button>
+              </div>
+            </div>
+            
+            {%- if form.posted_successfully? -%}
+              <p class="newsletter-form__message newsletter-form__message--success">{{ 'general.newsletter.success' | t }}</p>
+            {%- endif -%}
+            {%- if form.errors -%}
+              <p class="newsletter-form__message newsletter-form__message--error">{{ form.errors.messages['email'] }}</p>
+            {%- endif -%}
+          {%- endform -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<footer class="site-footer" data-section-id="{{ section.id }}" data-section-type="footer">
+  <div class="container">
+    <div class="site-footer__main">
+      <div class="site-footer__column site-footer__column--info">
+        <!-- معلومات المتجر والشعار -->
+        <div class="site-footer__info">
+          {%- if section.settings.footer_logo != blank -%}
+            <div class="site-footer__logo">
+              <img src="{{ section.settings.footer_logo | img_url: '200x' }}" 
+                  alt="{{ shop.name }}" 
+                  width="{{ section.settings.footer_logo.width }}" 
+                  height="{{ section.settings.footer_logo.height }}"
+                  loading="lazy">
+            </div>
+          {%- else -%}
+            <div class="site-footer__shop-name">
+              <h2>{{ shop.name }}</h2>
+            </div>
+          {%- endif -%}
+          
+          {%- if section.settings.footer_text != blank -%}
+            <div class="site-footer__text rte">
+              {{ section.settings.footer_text }}
+            </div>
+          {%- endif -%}
+          
+          <!-- روابط التواصل الاجتماعي -->
+          {%- if section.settings.show_social_icons -%}
+            <ul class="social-icons">
+              {%- if settings.social_facebook_link != blank -%}
+                <li class="social-icons__item">
+                  <a href="{{ settings.social_facebook_link }}" 
+                    class="social-icons__link social-icons__link--facebook" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="{{ 'general.social.follow_on_facebook' | t }}">
+                    <span class="icon-facebook" aria-hidden="true"></span>
+                  </a>
+                </li>
+              {%- endif -%}
+              
+              {%- if settings.social_instagram_link != blank -%}
+                <li class="social-icons__item">
+                  <a href="{{ settings.social_instagram_link }}" 
+                    class="social-icons__link social-icons__link--instagram" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="{{ 'general.social.follow_on_instagram' | t }}">
+                    <span class="icon-instagram" aria-hidden="true"></span>
+                  </a>
+                </li>
+              {%- endif -%}
+              
+              {%- if settings.social_twitter_link != blank -%}
+                <li class="social-icons__item">
+                  <a href="{{ settings.social_twitter_link }}" 
+                    class="social-icons__link social-icons__link--twitter" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="{{ 'general.social.follow_on_twitter' | t }}">
+                    <span class="icon-twitter" aria-hidden="true"></span>
+                  </a>
+                </li>
+              {%- endif -%}
+              
+              {%- if settings.social_youtube_link != blank -%}
+                <li class="social-icons__item">
+                  <a href="{{ settings.social_youtube_link }}" 
+                    class="social-icons__link social-icons__link--youtube" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="{{ 'general.social.follow_on_youtube' | t }}">
+                    <span class="icon-youtube" aria-hidden="true"></span>
+                  </a>
+                </li>
+              {%- endif -%}
+              
+              {%- if settings.social_tiktok_link != blank -%}
+                <li class="social-icons__item">
+                  <a href="{{ settings.social_tiktok_link }}" 
+                    class="social-icons__link social-icons__link--tiktok" 
+                    target="_blank" 
+                    rel="noopener"
+                    aria-label="{{ 'general.social.follow_on_tiktok' | t }}">
+                    <span class="icon-tiktok" aria-hidden="true"></span>
+                  </a>
+                </li>
+              {%- endif -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      </div>
+      
+      <!-- روابط التنقل السريع -->
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'link_list' -%}
+            <div class="site-footer__column site-footer__column--menu" {{ block.shopify_attributes }}>
+              {%- if block.settings.menu != blank -%}
+                <h3 class="site-footer__menu-title">{{ linklists[block.settings.menu].title }}</h3>
+                <ul class="site-footer__menu">
+                  {%- for link in linklists[block.settings.menu].links -%}
+                    <li class="site-footer__menu-item">
+                      <a href="{{ link.url }}" 
+                        class="site-footer__menu-link{% if link.active %} site-footer__menu-link--active{% endif %}">
+                        {{ link.title }}
+                      </a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- endif -%}
+            </div>
+            
+          {%- when 'text' -%}
+            <div class="site-footer__column site-footer__column--text" {{ block.shopify_attributes }}>
+              {%- if block.settings.title != blank -%}
+                <h3 class="site-footer__menu-title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+              
+              {%- if block.settings.text != blank -%}
+                <div class="site-footer__text rte">
+                  {{ block.settings.text }}
+                </div>
+              {%- endif -%}
+            </div>
+            
+          {%- when 'contact' -%}
+            <div class="site-footer__column site-footer__column--contact" {{ block.shopify_attributes }}>
+              {%- if block.settings.title != blank -%}
+                <h3 class="site-footer__menu-title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+              
+              <ul class="site-footer__contact-info">
+                {%- if block.settings.phone != blank -%}
+                  <li class="site-footer__contact-item">
+                    <span class="site-footer__contact-icon">
+                      <span class="icon-phone" aria-hidden="true"></span>
+                    </span>
+                    <a href="tel:{{ block.settings.phone }}" class="site-footer__contact-link">
+                      {{ block.settings.phone }}
+                    </a>
+                  </li>
+                {%- endif -%}
+                
+                {%- if block.settings.email != blank -%}
+                  <li class="site-footer__contact-item">
+                    <span class="site-footer__contact-icon">
+                      <span class="icon-email" aria-hidden="true"></span>
+                    </span>
+                    <a href="mailto:{{ block.settings.email }}" class="site-footer__contact-link">
+                      {{ block.settings.email }}
+                    </a>
+                  </li>
+                {%- endif -%}
+                
+                {%- if block.settings.address != blank -%}
+                  <li class="site-footer__contact-item">
+                    <span class="site-footer__contact-icon">
+                      <span class="icon-map-pin" aria-hidden="true"></span>
+                    </span>
+                    <address class="site-footer__contact-address">
+                      {{ block.settings.address }}
+                    </address>
+                  </li>
+                {%- endif -%}
+                
+                {%- if block.settings.working_hours != blank -%}
+                  <li class="site-footer__contact-item">
+                    <span class="site-footer__contact-icon">
+                      <span class="icon-clock" aria-hidden="true"></span>
+                    </span>
+                    <div class="site-footer__contact-hours">
+                      {{ block.settings.working_hours }}
+                    </div>
+                  </li>
+                {%- endif -%}
+              </ul>
+            </div>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+    
+    <div class="site-footer__bottom">
+      <!-- حقوق النشر -->
+      <div class="site-footer__copyright">
+        <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ section.settings.copyright_text }}</p>
+      </div>
+      
+      <!-- وسائل الدفع -->
+      {%- if section.settings.show_payment_icons -%}
+        <div class="site-footer__payment-icons">
+          <span class="visually-hidden">{{ 'checkout.payment_methods' | t }}</span>
+          <ul class="payment-icons">
+            {%- for type in shop.enabled_payment_types -%}
+              <li class="payment-icons__item">
+                {{ type | payment_type_svg_tag: class: 'payment-icons__icon' }}
+              </li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+      
+      <!-- محدد اللغة والعملة -->
+      <div class="site-footer__selectors">
+        {%- if section.settings.show_currency_selector and shop.enabled_currencies.size > 1 -%}
+          <div class="site-footer__currency-selector">
+            <div class="currency-selector">
+              <label class="visually-hidden" for="CurrencySelector-{{ section.id }}">
+                {{ 'general.currency.currency_selector' | t }}
+              </label>
+              <select id="CurrencySelector-{{ section.id }}" class="currency-selector__select" aria-describedby="CurrencySelectorHelp-{{ section.id }}">
+                {%- for currency in shop.enabled_currencies -%}
+                  <option value="{{ currency.iso_code }}" {%- if currency.iso_code == cart.currency.iso_code -%}selected{%- endif -%}>
+                    {{ currency.iso_code }}
+                  </option>
+                {%- endfor -%}
+              </select>
+              <span id="CurrencySelectorHelp-{{ section.id }}" class="visually-hidden">
+                {{ 'general.currency.currency_selector_help' | t }}
+              </span>
+            </div>
+          </div>
+        {%- endif -%}
+        
+        {%- if section.settings.show_locale_selector and shop.published_locales.size > 1 -%}
+          <div class="site-footer__locale-selector">
+            <div class="locale-selector">
+              <label class="visually-hidden" for="LocaleSelector-{{ section.id }}">
+                {{ 'general.language.language_selector' | t }}
+              </label>
+              <select id="LocaleSelector-{{ section.id }}" class="locale-selector__select" aria-describedby="LocaleSelectorHelp-{{ section.id }}">
+                {%- for locale in shop.published_locales -%}
+                  <option value="{{ locale.iso_code }}" {%- if locale.iso_code == shop.locale -%}selected{%- endif -%}>
+                    {{ locale.endonym_name }}
+                  </option>
+                {%- endfor -%}
+              </select>
+              <span id="LocaleSelectorHelp-{{ section.id }}" class="visually-hidden">
+                {{ 'general.language.language_selector_help' | t }}
+              </span>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "الفوتر",
+  "class": "section-footer",
+  "settings": [
+    {
+      "type": "header",
+      "content": "النشرة الإخبارية"
+    },
+    {
+      "type": "checkbox",
+      "id": "newsletter_enable",
+      "label": "إظهار النشرة الإخبارية",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "عنوان النشرة الإخبارية",
+      "default": "اشترك في نشرتنا الإخبارية"
+    },
+    {
+      "type": "richtext",
+      "id": "newsletter_text",
+      "label": "نص النشرة الإخبارية",
+      "default": "<p>اشترك للحصول على آخر الأخبار والعروض الخاصة وكوبونات الخصم!</p>"
+    },
+    {
+      "type": "header",
+      "content": "معلومات الفوتر"
+    },
+    {
+      "type": "image_picker",
+      "id": "footer_logo",
+      "label": "شعار الفوتر"
+    },
+    {
+      "type": "richtext",
+      "id": "footer_text",
+      "label": "نص المعلومات",
+      "default": "<p>متجر متخصص في بيع أحدث موديلات الأحذية الرياضية ذات الجودة العالية.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_icons",
+      "label": "إظهار وسائل التواصل الاجتماعي",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "copyright_text",
+      "label": "نص حقوق النشر",
+      "default": "جميع الحقوق محفوظة."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "إظهار وسائل الدفع",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_currency_selector",
+      "label": "إظهار محدد العملة",
+      "info": "لإضافة عملات، انتقل إلى إعدادات المتجر -> الدفع.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "إظهار محدد اللغة",
+      "info": "لإضافة لغات، انتقل إلى إعدادات المتجر -> اللغات.",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "link_list",
+      "name": "قائمة روابط",
+      "settings": [
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "القائمة",
+          "default": "footer"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "نص",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "العنوان",
+          "default": "معلومات عنا"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "النص",
+          "default": "<p>نحن متجر متخصص في بيع أجود أنواع الأحذية الرياضية العالمية. نقدم مجموعة واسعة من الموديلات لمختلف الرياضات والأنشطة.</p>"
+        }
+      ]
+    },
+    {
+      "type": "contact",
+      "name": "معلومات الاتصال",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "العنوان",
+          "default": "اتصل بنا"
+        },
+        {
+          "type": "text",
+          "id": "phone",
+          "label": "رقم الهاتف",
+          "default": "+1 123 456 7890"
+        },
+        {
+          "type": "text",
+          "id": "email",
+          "label": "البريد الإلكتروني",
+          "default": "info@example.com"
+        },
+        {
+          "type": "text",
+          "id": "address",
+          "label": "العنوان",
+          "default": "123 شارع المثال، المدينة، البلد"
+        },
+        {
+          "type": "text",
+          "id": "working_hours",
+          "label": "ساعات العمل",
+          "default": "الاثنين - الجمعة: 9:00 صباحاً - 6:00 مساءً"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "الفوتر",
+      "blocks": [
+        {
+          "type": "link_list"
+        },
+        {
+          "type": "text"
+        },
+        {
+          "type": "contact"
+        }
+      ]
+    }
+  ]

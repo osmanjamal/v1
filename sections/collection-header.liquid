@@ -1,0 +1,80 @@
+ {%- if section.settings.show_collection_image and collection.image -%}
+  <div class="collection-hero" data-section-id="{{ section.id }}" data-section-type="collection-hero">
+    <div class="collection-hero__image-container">
+      <div class="collection-hero__image">
+        <img srcset="{{ collection.image | img_url: '480x' }} 480w,
+                    {{ collection.image | img_url: '768x' }} 768w,
+                    {{ collection.image | img_url: '1080x' }} 1080w,
+                    {{ collection.image | img_url: '1600x' }} 1600w,
+                    {{ collection.image | img_url: '2000x' }} 2000w"
+             src="{{ collection.image | img_url: '1080x' }}"
+             sizes="100vw"
+             alt="{{ collection.title | escape }}"
+             loading="eager"
+             width="{{ collection.image.width }}"
+             height="{{ collection.image.height }}">
+      </div>
+    </div>
+    
+    <div class="collection-hero__content">
+      <div class="container">
+        <div class="collection-hero__title-wrapper">
+          <h1 class="collection-hero__title">{{ collection.title }}</h1>
+          
+          {%- if section.settings.show_collection_description and collection.description != blank -%}
+            <div class="collection-hero__description rte">
+              {{ collection.description }}
+            </div>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{%- else -%}
+  <div class="collection-header" data-section-id="{{ section.id }}" data-section-type="collection-header">
+    <div class="container">
+      <div class="collection-header__inner">
+        <!-- مسار التصفح -->
+        <nav class="breadcrumb" aria-label="breadcrumb">
+          <ol>
+            <li>
+              <a href="/">{{ 'general.breadcrumbs.home' | t }}</a>
+            </li>
+            <li aria-current="page">
+              {{ collection.title }}
+            </li>
+          </ol>
+        </nav>
+        
+        <h1 class="collection-header__title">{{ collection.title }}</h1>
+        
+        {%- if section.settings.show_collection_description and collection.description != blank -%}
+          <div class="collection-header__description rte">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "رأس المجموعة",
+  "class": "section-collection-header",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "إظهار صورة المجموعة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "إظهار وصف المجموعة",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,223 @@
+<div class="features-section" data-section-id="{{ section.id }}" data-section-type="features">
+  <div class="container">
+    <div class="section-header">
+      {%- if section.settings.title != blank -%}
+        <h2 class="section-header__title">{{ section.settings.title }}</h2>
+      {%- endif -%}
+      
+      {%- if section.settings.subtitle != blank -%}
+        <div class="section-header__subtitle">{{ section.settings.subtitle }}</div>
+      {%- endif -%}
+    </div>
+    
+    <div class="features">
+      {%- for block in section.blocks -%}
+        <div class="feature" {{ block.shopify_attributes }}>
+          <div class="feature__icon-wrapper">
+            <div class="feature__icon">
+              <span class="icon-{{ block.settings.icon }}" aria-hidden="true"></span>
+            </div>
+          </div>
+          
+          <div class="feature__content">
+            {%- if block.settings.title != blank -%}
+              <h3 class="feature__title">{{ block.settings.title }}</h3>
+            {%- endif -%}
+            
+            {%- if block.settings.text != blank -%}
+              <div class="feature__text">{{ block.settings.text }}</div>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  .features-section {
+    padding: 60px 0;
+    background-color: {{ section.settings.background_color }};
+  }
+  
+  .features {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 30px;
+    
+    @media (min-width: 576px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+    }
+  }
+  
+  .feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .feature__icon-wrapper {
+    margin-bottom: 20px;
+  }
+  
+  .feature__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: {{ section.settings.icon_background_color }};
+    color: {{ section.settings.icon_color }};
+    font-size: 32px;
+  }
+  
+  .feature__title {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  .feature__text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: {{ section.settings.text_color }};
+  }
+</style>
+
+{% schema %}
+{
+  "name": "مميزات",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "العنوان",
+      "default": "لماذا تختارنا"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "عنوان فرعي",
+      "default": "أسباب تجعلنا الخيار الأمثل"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "لون الخلفية",
+      "default": "#f8f9fa"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#777777"
+    },
+    {
+      "type": "color",
+      "id": "icon_background_color",
+      "label": "لون خلفية الأيقونة",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "لون الأيقونة",
+      "default": "#339af0"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "عدد الأعمدة",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "4"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "ميزة",
+      "settings": [
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "أيقونة",
+          "default": "truck",
+          "info": "إدخال اسم أيقونة Font Awesome مثل: truck, shield, redo, credit-card"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "العنوان",
+          "default": "شحن سريع"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "النص",
+          "default": "<p>توصيل سريع لجميع طلباتك مع إمكانية تتبع الشحنة</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "مميزات",
+      "blocks": [
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "truck",
+            "title": "شحن سريع",
+            "text": "<p>توصيل سريع لجميع طلباتك مع إمكانية تتبع الشحنة</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "redo",
+            "title": "إرجاع مجاني",
+            "text": "<p>استبدال المنتج أو استرداد المبلغ خلال 30 يوم</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "shield",
+            "title": "ضمان الجودة",
+            "text": "<p>نقدم منتجات عالية الجودة مع ضمان لمدة عام</p>"
+          }
+        },
+        {
+          "type": "feature",
+          "settings": {
+            "icon": "headset",
+            "title": "دعم على مدار الساعة",
+            "text": "<p>فريق خدمة عملاء متميز متاح للمساعدة في أي وقت</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

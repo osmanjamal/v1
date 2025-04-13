@@ -1,0 +1,443 @@
+{%- assign current_product = product -%}
+{%- assign current_variant = current_product.selected_or_first_available_variant -%}
+{%- assign featured_image = current_variant.featured_image | default: current_product.featured_image -%}
+
+<div class="product-template" data-section-id="{{ section.id }}" data-section-type="product" data-product-id="{{ current_product.id }}">
+  <div class="container">
+    <!-- Breadcrumb - مسار التصفح -->
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <ol>
+        <li>
+          <a href="/">{{ 'general.breadcrumbs.home' | t }}</a>
+        </li>
+        {% if collection.title %}
+          <li>
+            <a href="{{ collection.url }}">{{ collection.title }}</a>
+          </li>
+        {% elsif current_product.collections.first %}
+          <li>
+            <a href="{{ current_product.collections.first.url }}">{{ current_product.collections.first.title }}</a>
+          </li>
+        {% endif %}
+        <li aria-current="page">
+          {{ current_product.title }}
+        </li>
+      </ol>
+    </nav>
+    
+    <div class="product">
+      <!-- صور المنتج -->
+      <div class="product__media-wrapper" data-product-images>
+        {% case section.settings.product_image_layout %}
+          {% when 'stacked' %}
+            <div class="product-gallery product-gallery--stacked">
+              <div class="product-gallery__main">
+                {% for media in current_product.media %}
+                  <div class="product-gallery__item" data-media-id="{{ media.id }}">
+                    {% case media.media_type %}
+                      {% when 'image' %}
+                        <div class="product-gallery__image">
+                          <img src="{{ media | img_url: '800x' }}" 
+                              alt="{{ media.alt | escape }}"
+                              data-image-id="{{ media.id }}"
+                              {% if section.settings.enable_zoom %}data-zoom-src="{{ media | img_url: '1800x' }}"{% endif %}>
+                        </div>
+              
+              <!-- أزرار المشاركة -->
+              {% if section.settings.show_social_sharing %}
+                <div class="product-form__social-sharing">
+                  <span class="product-form__social-sharing-label">{{ 'products.product.share' | t }}:</span>
+                  <div class="social-sharing">
+                    <a href="https://www.facebook.com/sharer.php?u={{ shop.url | append: current_product.url }}" 
+                      class="social-sharing__link social-sharing__link--facebook" 
+                      target="_blank" 
+                      rel="noopener"
+                      aria-label="{{ 'general.social.share_on_facebook' | t }}">
+                      <span class="icon-facebook" aria-hidden="true"></span>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?text={{ current_product.title | url_encode }}&url={{ shop.url | append: current_product.url | url_encode }}" 
+                      class="social-sharing__link social-sharing__link--twitter" 
+                      target="_blank" 
+                      rel="noopener"
+                      aria-label="{{ 'general.social.share_on_twitter' | t }}">
+                      <span class="icon-twitter" aria-hidden="true"></span>
+                    </a>
+                    <a href="https://pinterest.com/pin/create/button/?url={{ shop.url | append: current_product.url | url_encode }}&media={{ current_product.featured_image | img_url: '1024x' | prepend: 'https:' | url_encode }}&description={{ current_product.title | url_encode }}" 
+                      class="social-sharing__link social-sharing__link--pinterest" 
+                      target="_blank" 
+                      rel="noopener"
+                      aria-label="{{ 'general.social.share_on_pinterest' | t }}">
+                      <span class="icon-pinterest" aria-hidden="true"></span>
+                    </a>
+                    <a href="mailto:?subject={{ current_product.title | url_encode }}&body={{ shop.url | append: current_product.url | url_encode }}" 
+                      class="social-sharing__link social-sharing__link--email"
+                      aria-label="{{ 'general.social.share_by_email' | t }}">
+                      <span class="icon-email" aria-hidden="true"></span>
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+                      {% when 'external_video' %}
+                        <div class="product-gallery__video" data-video-type="external" data-video-id="{{ media.external_id }}">
+                          {{ media | external_video_tag: image_size: '800x450' }}
+                        </div>
+                      {% when 'video' %}
+                        <div class="product-gallery__video">
+                          {{ media | video_tag: image_size: '800x450', controls: true }}
+                        </div>
+                      {% when 'model' %}
+                        <div class="product-gallery__model" data-model-id="{{ media.id }}">
+                          {{ media | model_viewer_tag }}
+                        </div>
+                    {% endcase %}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            
+          {% when 'thumbnails' %}
+            <div class="product-gallery product-gallery--thumbnails">
+              <div class="product-gallery__main">
+                {% for media in current_product.media %}
+                  <div class="product-gallery__slide" data-media-id="{{ media.id }}">
+                    {% case media.media_type %}
+                      {% when 'image' %}
+                        <div class="product-gallery__image">
+                          <img src="{{ media | img_url: '800x' }}" 
+                              alt="{{ media.alt | escape }}"
+                              data-image-id="{{ media.id }}"
+                              {% if section.settings.enable_zoom %}data-zoom-src="{{ media | img_url: '1800x' }}"{% endif %}>
+                        </div>
+                      {% when 'external_video' %}
+                        <div class="product-gallery__video" data-video-type="external" data-video-id="{{ media.external_id }}">
+                          {{ media | external_video_tag: image_size: '800x450' }}
+                        </div>
+                      {% when 'video' %}
+                        <div class="product-gallery__video">
+                          {{ media | video_tag: image_size: '800x450', controls: true }}
+                        </div>
+                      {% when 'model' %}
+                        <div class="product-gallery__model" data-model-id="{{ media.id }}">
+                          {{ media | model_viewer_tag }}
+                        </div>
+                    {% endcase %}
+                  </div>
+                {% endfor %}
+              </div>
+              
+              <div class="product-gallery__thumbnails">
+                {% for media in current_product.media %}
+                  <div class="product-gallery__thumbnail{% if forloop.first %} is-active{% endif %}" 
+                      data-thumbnail-id="{{ media.id }}">
+                    <img src="{{ media.preview_image | img_url: '150x150', crop: 'center' }}" 
+                        alt="{{ media.alt | escape }}">
+                      
+                    {% if media.media_type != 'image' %}
+                      <div class="product-gallery__thumbnail-badge">
+                        {% case media.media_type %}
+                          {% when 'external_video' or 'video' %}
+                            <span class="icon-video"></span>
+                          {% when 'model' %}
+                            <span class="icon-3d"></span>
+                        {% endcase %}
+                      </div>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          
+          {% when 'slider' %}
+            <div class="product-gallery product-gallery--slider">
+              <div class="product-gallery__main">
+                {% for media in current_product.media %}
+                  <div class="product-gallery__slide" data-media-id="{{ media.id }}">
+                    {% case media.media_type %}
+                      {% when 'image' %}
+                        <div class="product-gallery__image">
+                          <img src="{{ media | img_url: '800x' }}" 
+                              alt="{{ media.alt | escape }}"
+                              data-image-id="{{ media.id }}"
+                              {% if section.settings.enable_zoom %}data-zoom-src="{{ media | img_url: '1800x' }}"{% endif %}>
+                        </div>
+                      {% when 'external_video' %}
+                        <div class="product-gallery__video" data-video-type="external" data-video-id="{{ media.external_id }}">
+                          {{ media | external_video_tag: image_size: '800x450' }}
+                        </div>
+                      {% when 'video' %}
+                        <div class="product-gallery__video">
+                          {{ media | video_tag: image_size: '800x450', controls: true }}
+                        </div>
+                      {% when 'model' %}
+                        <div class="product-gallery__model" data-model-id="{{ media.id }}">
+                          {{ media | model_viewer_tag }}
+                        </div>
+                    {% endcase %}
+                  </div>
+                {% endfor %}
+              </div>
+              
+              <div class="product-gallery__nav">
+                <button type="button" class="product-gallery__nav-button product-gallery__nav-button--prev">
+                  <span class="icon-chevron-left" aria-hidden="true"></span>
+                  <span class="visually-hidden">{{ 'general.accessibility.previous' | t }}</span>
+                </button>
+                <button type="button" class="product-gallery__nav-button product-gallery__nav-button--next">
+                  <span class="icon-chevron-right" aria-hidden="true"></span>
+                  <span class="visually-hidden">{{ 'general.accessibility.next' | t }}</span>
+                </button>
+              </div>
+              
+              <div class="product-gallery__pagination"></div>
+            </div>
+        {% endcase %}
+        
+        <!-- شارات المنتج -->
+        <div class="product-badges">
+          {% if current_product.available == false %}
+            <span class="badge badge--sold-out">{{ 'products.product.sold_out' | t }}</span>
+          {% endif %}
+          
+          {% if current_product.compare_at_price > current_product.price %}
+            <span class="badge badge--sale">
+              {% if settings.sale_badge_type == 'percentage' %}
+                {% assign save_percentage = current_product.compare_at_price | minus: current_product.price | times: 100 | divided_by: current_product.compare_at_price | round %}
+                {{ 'products.product.save_percentage' | t: percentage: save_percentage }}
+              {% else %}
+                {{ 'products.product.on_sale' | t }}
+              {% endif %}
+            </span>
+          {% endif %}
+          
+          {% if current_product.created_at > settings.new_product_days %}
+            <span class="badge badge--new">{{ 'products.product.new' | t }}</span>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- معلومات المنتج -->
+      <div class="product__info-wrapper">
+        <div class="product__info">
+          <!-- العلامة التجارية / البائع -->
+          {% if section.settings.show_vendor and current_product.vendor %}
+            <div class="product__vendor">
+              <a href="{{ current_product.vendor | url_for_vendor }}">{{ current_product.vendor }}</a>
+            </div>
+          {% endif %}
+          
+          <!-- عنوان المنتج -->
+          <h1 class="product__title">
+            {{ current_product.title }}
+          </h1>
+          
+          <!-- تقييمات المنتج -->
+          {% if current_product.metafields.reviews.rating %}
+            <div class="product__reviews">
+              <span class="rating" aria-label="{{ 'products.product.star_reviews_info' | t: rating_value: current_product.metafields.reviews.rating.value, rating_max: product.metafields.reviews.rating.value.scale_max }}">
+                {% for i in (1..5) %}
+                  <span class="icon-star {% if current_product.metafields.reviews.rating.value >= i %}icon-star--filled{% endif %}" aria-hidden="true"></span>
+                {% endfor %}
+              </span>
+              <span class="rating__count">
+                ({{ current_product.metafields.reviews.rating_count }})
+              </span>
+            </div>
+          {% endif %}
+          
+          <!-- سعر المنتج -->
+          <div class="product__price">
+            {% if current_product.available %}
+              {% if current_product.compare_at_price > current_product.price %}
+                <span class="product__price-item product__price--sale" data-product-price>
+                  {{ current_variant.price | money }}
+                </span>
+                <span class="product__price-item product__price--compare">
+                  {{ current_variant.compare_at_price | money }}
+                </span>
+              {% else %}
+                <span class="product__price-item" data-product-price>
+                  {{ current_variant.price | money }}
+                </span>
+              {% endif %}
+            {% else %}
+              <span class="product__price-item product__price--soldout">
+                {{ 'products.product.sold_out' | t }}
+              </span>
+            {% endif %}
+          </div>
+          
+          <!-- رقم المنتج SKU -->
+          {% if section.settings.show_sku and current_variant.sku != blank %}
+            <div class="product__sku">
+              <span>{{ 'products.product.sku' | t }}:</span>
+              <span data-product-sku>{{ current_variant.sku }}</span>
+            </div>
+          {% endif %}
+          
+          <!-- وصف مختصر (من الوصف المنسق) -->
+          {% if current_product.description contains '<!-- short-description -->' %}
+            {% assign short_description_start = current_product.description | split: '<!-- short-description -->' | first | split: '<p>' | last %}
+            {% assign short_description_end = current_product.description | split: '<!-- /short-description -->' | first | split: '</p>' | last %}
+            <div class="product__short-description rte">
+              <p>{{ short_description_start }}{{ short_description_end }}</p>
+            </div>
+          {% endif %}
+          
+          <!-- نموذج المنتج -->
+          <div class="product__form">
+            {% form 'product', current_product, id: 'product-form', novalidate: 'novalidate', class: 'product-form' %}
+              <input type="hidden" name="id" value="{{ current_variant.id }}" data-product-select>
+              
+              <!-- خيارات المنتج -->
+              {% unless current_product.has_only_default_variant %}
+                <div class="product-form__options">
+                  {% for option in current_product.options_with_values %}
+                    {% assign option_name = option.name | downcase %}
+                    
+                    <div class="product-form__option" data-option-index="{{ forloop.index0 }}">
+                      <h3 class="product-form__option-label">
+                        {{ option.name }}: <span data-option-selected-value>{{ option.selected_value }}</span>
+                      </h3>
+                      
+                      {% case option_name %}
+                        {% when 'color' or 'colour' %}
+                          <!-- خيار اللون مع عينات -->
+                          <div class="color-swatches" data-option-selector>
+                            {% for value in option.values %}
+                              {% assign color_id = value | handle %}
+                              {% assign variant_for_value = current_product.variants | where: option.name, value | first %}
+                              
+                              <div class="color-swatch {% if option.selected_value == value %}is-active{% endif %}">
+                                <input type="radio" 
+                                  id="Color-{{ section.id }}-{{ forloop.index }}" 
+                                  name="{{ option.name }}"
+                                  value="{{ value | escape }}"
+                                  {% if option.selected_value == value %}checked{% endif %}>
+                                <label for="Color-{{ section.id }}-{{ forloop.index }}" 
+                                  class="color-swatch__label"
+                                  data-option-value="{{ value | escape }}"
+                                  style="background-color: {{ value | handle }};">
+                                  <span class="visually-hidden">{{ value }}</span>
+                                </label>
+                              </div>
+                            {% endfor %}
+                          </div>
+                          
+                        {% when 'size' %}
+                          <!-- خيار المقاس مع جدول المقاسات -->
+                          <div class="size-options" data-option-selector>
+                            {% for value in option.values %}
+                              {% assign variant_for_value = current_product.variants | where: option.name, value | first %}
+                              
+                              <div class="size-option">
+                                <input type="radio" 
+                                  id="Size-{{ section.id }}-{{ forloop.index }}" 
+                                  name="{{ option.name }}"
+                                  value="{{ value | escape }}"
+                                  {% if option.selected_value == value %}checked{% endif %}
+                                  {% unless variant_for_value.available %}disabled{% endunless %}>
+                                <label for="Size-{{ section.id }}-{{ forloop.index }}" 
+                                  class="size-option__label{% unless variant_for_value.available %} size-option__label--sold-out{% endunless %}"
+                                  data-option-value="{{ value | escape }}">
+                                  {{ value }}
+                                </label>
+                              </div>
+                            {% endfor %}
+                            
+                            {% if section.settings.show_size_chart %}
+                              <button type="button" class="size-chart-button js-size-chart-trigger">
+                                <span class="icon-ruler" aria-hidden="true"></span>
+                                {{ 'products.product.size_chart' | t }}
+                              </button>
+                            {% endif %}
+                          </div>
+                          
+                        {% else %}
+                          <!-- خيار عام -->
+                          <select class="product-form__option-select" 
+                            id="{{ option.name | handle }}-{{ section.id }}" 
+                            name="{{ option.name }}" 
+                            data-option-selector>
+                            {% for value in option.values %}
+                              <option value="{{ value | escape }}" 
+                                {% if option.selected_value == value %}selected="selected"{% endif %}>
+                                {{ value }}
+                              </option>
+                            {% endfor %}
+                          </select>
+                      {% endcase %}
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endunless %}
+              
+              <!-- مؤشر توفر المنتج -->
+              <div class="product-form__inventory">
+                <span class="product-form__inventory-status {% if current_variant.available %}is-available{% else %}is-unavailable{% endif %}" data-inventory-status>
+                  {% if current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'deny' and current_variant.inventory_quantity > 0 %}
+                    {{ 'products.product.in_stock_with_quantity' | t: quantity: current_variant.inventory_quantity }}
+                  {% elsif current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'deny' and current_variant.inventory_quantity <= 0 %}
+                    {{ 'products.product.sold_out' | t }}
+                  {% elsif current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'continue' %}
+                    {{ 'products.product.available' | t }}
+                  {% else %}
+                    {{ 'products.product.available' | t }}
+                  {% endif %}
+                </span>
+              </div>
+              
+              <!-- اختيار الكمية -->
+              <div class="product-form__quantity">
+                <label for="Quantity-{{ section.id }}" class="product-form__quantity-label">
+                  {{ 'products.product.quantity' | t }}
+                </label>
+                <div class="quantity-input">
+                  <button type="button" class="quantity-input__button quantity-input__button--minus" 
+                    aria-label="{{ 'products.product.decrease_quantity' | t }}">
+                    <span class="icon-minus" aria-hidden="true"></span>
+                  </button>
+                  <input type="number" 
+                    id="Quantity-{{ section.id }}" 
+                    name="quantity" 
+                    value="1" 
+                    min="1" 
+                    aria-label="{{ 'products.product.quantity' | t }}"
+                    class="quantity-input__field">
+                  <button type="button" class="quantity-input__button quantity-input__button--plus" 
+                    aria-label="{{ 'products.product.increase_quantity' | t }}">
+                    <span class="icon-plus" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- أزرار الإجراءات -->
+              <div class="product-form__actions">
+                <!-- زر الإضافة إلى السلة -->
+                <button type="submit" 
+                  name="add" 
+                  class="btn btn--primary product-form__add-to-cart{% unless current_variant.available %} btn--disabled{% endunless %}" 
+                  {% unless current_variant.available %}disabled{% endunless %}
+                  data-add-to-cart>
+                  <span class="btn__text">
+                    {% if current_variant.available %}
+                      {{ 'products.product.add_to_cart' | t }}
+                    {% else %}
+                      {{ 'products.product.sold_out' | t }}
+                    {% endif %}
+                  </span>
+                  <span class="btn__loading" aria-hidden="true">
+                    <span class="loading-spinner"></span>
+                  </span>
+                </button>
+                
+                <!-- زر الشراء الآن -->
+                {% if section.settings.show_buy_now_button %}
+                  <button type="submit" 
+                    name="checkout" 
+                    class="btn btn--secondary product-form__buy-now{% unless current_variant.available %} btn--disabled{% endunless %}" 
+                    {% unless current_variant.available %}disabled{% endunless %}
+                    data-buy-now>
+                    {{ 'products.product.buy_now' | t }}
+                  </button>
+                {% endif %}
+              </div>

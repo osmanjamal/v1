@@ -1,0 +1,312 @@
+[
+  {
+    "name": "معلومات الثيم",
+    "settings": [
+      {
+        "type": "header",
+        "content": "ثيم متجر الأحذية الرياضية"
+      },
+      {
+        "type": "paragraph",
+        "content": "ثيم متكامل لمتجر الأحذية الرياضية على شوبيفاي."
+      }
+    ]
+  },
+  {
+    "name": "الألوان",
+    "settings": [
+      {
+        "type": "header",
+        "content": "ألوان الثيم الأساسية"
+      },
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "اللون الرئيسي",
+        "default": "#ff6b6b"
+      },
+      {
+        "type": "color",
+        "id": "color_secondary",
+        "label": "اللون الثانوي",
+        "default": "#339af0"
+      },
+      {
+        "type": "color",
+        "id": "color_body_text",
+        "label": "لون النص الأساسي",
+        "default": "#333333"
+      },
+      {
+        "type": "color",
+        "id": "color_body_bg",
+        "label": "لون الخلفية",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_sale",
+        "label": "لون التخفيضات",
+        "default": "#e03131"
+      },
+      {
+        "type": "color",
+        "id": "color_button",
+        "label": "لون الأزرار",
+        "default": "#339af0"
+      }
+    ]
+  },
+  {
+    "name": "الخطوط",
+    "settings": [
+      {
+        "type": "header",
+        "content": "خطوط الثيم"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_heading",
+        "label": "خط العناوين",
+        "default": "roboto_n7"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_body",
+        "label": "خط النصوص",
+        "default": "roboto_n4"
+      },
+      {
+        "type": "range",
+        "id": "base_font_size",
+        "label": "حجم الخط الأساسي",
+        "default": 16,
+        "min": 12,
+        "max": 20,
+        "step": 1,
+        "unit": "px"
+      }
+    ]
+  },
+  {
+    "name": "الهيدر",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "شعار الموقع"
+      },
+      {
+        "type": "range",
+        "id": "logo_max_width",
+        "label": "أقصى عرض للشعار",
+        "min": 50,
+        "max": 300,
+        "step": 10,
+        "unit": "px",
+        "default": 150
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_sticky_header",
+        "label": "تفعيل رأس الصفحة الثابت",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "header_style",
+        "label": "نمط الهيدر",
+        "options": [
+          {
+            "value": "classic",
+            "label": "كلاسيكي"
+          },
+          {
+            "value": "minimal",
+            "label": "مبسط"
+          },
+          {
+            "value": "centered",
+            "label": "متمركز"
+          }
+        ],
+        "default": "classic"
+      }
+    ]
+  },
+  {
+    "name": "الفوتر",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_payment_icons",
+        "label": "إظهار طرق الدفع",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_social_icons",
+        "label": "إظهار وسائل التواصل الاجتماعي",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_locale_selector",
+        "label": "إظهار محدد اللغة",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_currency_selector",
+        "label": "إظهار محدد العملة",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "صفحة المنتج",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "إظهار اسم البائع",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sku",
+        "label": "إظهار SKU",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_zoom",
+        "label": "تفعيل تكبير الصورة",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_size_chart",
+        "label": "إظهار جدول المقاسات",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "product_image_layout",
+        "label": "تنسيق صور المنتج",
+        "options": [
+          {
+            "value": "stacked",
+            "label": "مكدس"
+          },
+          {
+            "value": "thumbnails",
+            "label": "مصغرات"
+          },
+          {
+            "value": "slider",
+            "label": "سلايدر"
+          }
+        ],
+        "default": "thumbnails"
+      }
+    ]
+  },
+  {
+    "name": "سلة التسوق",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enable_ajax_cart",
+        "label": "تفعيل سلة AJAX",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_notes_enable",
+        "label": "تفعيل ملاحظات السلة",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_upsell_enable",
+        "label": "تفعيل منتجات متعلقة",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "وسائل التواصل الاجتماعي",
+    "settings": [
+      {
+        "type": "header",
+        "content": "روابط التواصل الاجتماعي"
+      },
+      {
+        "type": "text",
+        "id": "social_facebook_link",
+        "label": "فيسبوك",
+        "info": "https://facebook.com/yourpage"
+      },
+      {
+        "type": "text",
+        "id": "social_instagram_link",
+        "label": "انستغرام",
+        "info": "https://instagram.com/yourpage"
+      },
+      {
+        "type": "text",
+        "id": "social_twitter_link",
+        "label": "تويتر",
+        "info": "https://twitter.com/yourpage"
+      },
+      {
+        "type": "text",
+        "id": "social_youtube_link",
+        "label": "يوتيوب",
+        "info": "https://youtube.com/yourpage"
+      },
+      {
+        "type": "text",
+        "id": "social_tiktok_link",
+        "label": "تيك توك",
+        "info": "https://tiktok.com/@yourpage"
+      }
+    ]
+  },
+  {
+    "name": "تخصيص الصفحة الرئيسية",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_welcome_section",
+        "label": "إظهار قسم الترحيب",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_featured_collection",
+        "label": "إظهار المجموعة المميزة",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_featured_brands",
+        "label": "إظهار العلامات التجارية المميزة",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_testimonials",
+        "label": "إظهار آراء العملاء",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_newsletter_section",
+        "label": "إظهار قسم النشرة الإخبارية",
+        "default": true
+      }
+    ]
+  }
+]

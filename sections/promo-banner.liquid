@@ -1,0 +1,256 @@
+<div class="promo-banner" data-section-id="{{ section.id }}" data-section-type="promo-banner" style="background-color: {{ section.settings.background_color }};">
+  <div class="container">
+    <div class="promo-banner__inner" style="background-color: {{ section.settings.content_background_color }};">
+      <div class="promo-banner__content">
+        {%- if section.settings.small_text != blank -%}
+          <div class="promo-banner__small-text" style="color: {{ section.settings.small_text_color }};">{{ section.settings.small_text }}</div>
+        {%- endif -%}
+        
+        {%- if section.settings.heading != blank -%}
+          <h2 class="promo-banner__heading" style="color: {{ section.settings.heading_color }};">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        
+        {%- if section.settings.text != blank -%}
+          <div class="promo-banner__text" style="color: {{ section.settings.text_color }};">
+            {{ section.settings.text }}
+          </div>
+        {%- endif -%}
+        
+        {%- if section.settings.button_text != blank -%}
+          <a href="{{ section.settings.button_link }}" class="promo-banner__button btn {% if section.settings.button_style == 'primary' %}btn--primary{% else %}btn--secondary{% endif %}">
+            {{ section.settings.button_text }}
+          </a>
+        {%- endif -%}
+      </div>
+      
+      {%- if section.settings.image != blank -%}
+        <div class="promo-banner__image">
+          <img srcset="{{ section.settings.image | img_url: '400x' }} 400w,
+                       {{ section.settings.image | img_url: '600x' }} 600w,
+                       {{ section.settings.image | img_url: '800x' }} 800w"
+               src="{{ section.settings.image | img_url: '600x' }}"
+               sizes="(min-width: 768px) 50vw, 100vw"
+               alt="{{ section.settings.image.alt | escape }}"
+               loading="lazy"
+               width="{{ section.settings.image.width }}"
+               height="{{ section.settings.image.height }}">
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  .promo-banner {
+    padding: {{ section.settings.section_padding }}px 0;
+  }
+  
+  .promo-banner__inner {
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    overflow: hidden;
+    
+    @media (min-width: 768px) {
+      flex-direction: {% if section.settings.image_position == 'right' %}row{% else %}row-reverse{% endif %};
+    }
+  }
+  
+  .promo-banner__content {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+  }
+  
+  .promo-banner__small-text {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .promo-banner__heading {
+    margin-bottom: 15px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    
+    @media (min-width: 768px) {
+      font-size: 36px;
+    }
+  }
+  
+  .promo-banner__text {
+    margin-bottom: 25px;
+    font-size: 16px;
+    line-height: 1.6;
+    
+    p {
+      margin-bottom: 10px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  .promo-banner__button {
+    align-self: flex-start;
+  }
+  
+  .promo-banner__image {
+    width: 100%;
+    
+    @media (min-width: 768px) {
+      width: 50%;
+    }
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "بانر ترويجي",
+  "class": "index-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "المحتوى"
+    },
+    {
+      "type": "text",
+      "id": "small_text",
+      "label": "نص صغير",
+      "default": "عرض خاص"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "العنوان",
+      "default": "تخفيضات موسمية"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "النص",
+      "default": "<p>استمتع بتخفيضات حصرية تصل إلى 40% على مجموعة مختارة من الأحذية الرياضية الفاخرة. عرض محدود لفترة محدودة!</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "نص الزر",
+      "default": "تسوق الآن"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "رابط الزر",
+      "default": "/collections/all"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "نمط الزر",
+      "options": [
+        {
+          "value": "primary",
+          "label": "أساسي"
+        },
+        {
+          "value": "secondary",
+          "label": "ثانوي"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "header",
+      "content": "الصورة"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "الصورة"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "موضع الصورة",
+      "options": [
+        {
+          "value": "left",
+          "label": "يسار"
+        },
+        {
+          "value": "right",
+          "label": "يمين"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "header",
+      "content": "الألوان"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "لون خلفية القسم",
+      "default": "#f8f9fa"
+    },
+    {
+      "type": "color",
+      "id": "content_background_color",
+      "label": "لون خلفية المحتوى",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "small_text_color",
+      "label": "لون النص الصغير",
+      "default": "#339af0"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "لون العنوان",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#777777"
+    },
+    {
+      "type": "header",
+      "content": "التباعد"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "تباعد القسم",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "default": 60,
+      "unit": "px"
+    }
+  ],
+  "presets": [
+    {
+      "name": "بانر ترويجي",
+      "category": "ترويج"
+    }
+  ]
+}
+{% endschema %}
