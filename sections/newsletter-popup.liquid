@@ -1,0 +1,463 @@
+{%- if section.settings.show_newsletter_popup -%}
+  <div class="newsletter-popup" data-section-id="{{ section.id }}" data-section-type="newsletter-popup">
+    <div class="newsletter-popup__overlay"></div>
+    <div class="newsletter-popup__container">
+      <button type="button" class="newsletter-popup__close" aria-label="{{ 'general.accessibility.close' | t }}">
+        <span class="icon-close" aria-hidden="true"></span>
+      </button>
+      
+      <div class="newsletter-popup__content">
+        {%- if section.settings.image != blank -%}
+          <div class="newsletter-popup__image">
+            <img srcset="{{ section.settings.image | img_url: '400x' }} 400w,
+                        {{ section.settings.image | img_url: '600x' }} 600w,
+                        {{ section.settings.image | img_url: '800x' }} 800w"
+                src="{{ section.settings.image | img_url: '600x' }}"
+                sizes="(min-width: 768px) 50vw, 100vw"
+                alt="{{ section.settings.image.alt | escape }}"
+                loading="lazy"
+                width="{{ section.settings.image.width }}"
+                height="{{ section.settings.image.height }}">
+          </div>
+        {%- endif -%}
+        
+        <div class="newsletter-popup__form-wrapper">
+          {%- if section.settings.title != blank -%}
+            <h2 class="newsletter-popup__title">{{ section.settings.title }}</h2>
+          {%- endif -%}
+          
+          {%- if section.settings.text != blank -%}
+            <div class="newsletter-popup__text rte">
+              {{ section.settings.text }}
+            </div>
+          {%- endif -%}
+          
+          {%- form 'customer', id: 'NewsletterPopupForm', class: 'newsletter-popup__form' -%}
+            {%- if form.errors -%}
+              <div class="newsletter-popup__form-message newsletter-popup__form-message--error">
+                {{ form.errors | default_errors }}
+              </div>
+            {%- endif -%}
+            
+            {%- if form.posted_successfully? -%}
+              <div class="newsletter-popup__form-message newsletter-popup__form-message--success">
+                {{ 'general.newsletter.success' | t }}
+              </div>
+            {%- else -%}
+              <input type="hidden" name="contact[tags]" value="newsletter">
+              
+              <div class="newsletter-popup__form-field-wrapper">
+                <div class="newsletter-popup__form-field">
+                  <label for="NewsletterPopupEmail" class="visually-hidden">{{ 'general.newsletter.email_placeholder' | t }}</label>
+                  <input type="email"
+                    name="contact[email]"
+                    id="NewsletterPopupEmail"
+                    class="newsletter-popup__form-input"
+                    value="{% if customer %}{{ customer.email }}{% endif %}"
+                    placeholder="{{ 'general.newsletter.email_placeholder' | t }}"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    required>
+                </div>
+                
+                <button type="submit" name="commit" class="newsletter-popup__form-submit btn btn--primary">
+                  {{ 'general.newsletter.subscribe' | t }}
+                </button>
+              </div>
+              
+              {%- if section.settings.show_disclaimer -%}
+                <div class="newsletter-popup__disclaimer">
+                  {{ section.settings.disclaimer_text }}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+          {%- endform -%}
+          
+          <div class="newsletter-popup__no-thanks">
+            <button type="button" class="newsletter-popup__no-thanks-btn" data-popup-no-thanks>
+              {{ section.settings.no_thanks_text }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    .newsletter-popup__form-field-wrapper {
+      display: flex;
+      flex-direction: column;
+      
+      @media (min-width: 480px) {
+        flex-direction: row;
+      }
+    }
+    
+    .newsletter-popup__form-field {
+      flex: 1;
+      margin-bottom: 15px;
+      
+      @media (min-width: 480px) {
+        margin-bottom: 0;
+        margin-right: 10px;
+      }
+    }
+    
+    .newsletter-popup__form-input {
+      width: 100%;
+      height: 45px;
+      padding: 0 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      
+      &:focus {
+        border-color: {{ section.settings.accent_color }};
+        outline: none;
+      }
+    }
+    
+    .newsletter-popup__form-submit {
+      height: 45px;
+      white-space: nowrap;
+      background-color: {{ section.settings.accent_color }};
+      color: #fff;
+      
+      &:hover {
+        background-color: darken({{ section.settings.accent_color }}, 10%);
+      }
+    }
+    
+    .newsletter-popup__form-message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      
+      &--success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      
+      &--error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    }
+    
+    .newsletter-popup__disclaimer {
+      margin-top: 15px;
+      font-size: 12px;
+      color: {{ section.settings.disclaimer_color }};
+    }
+    
+    .newsletter-popup__no-thanks {
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    .newsletter-popup__no-thanks-btn {
+      background: transparent;
+      border: none;
+      color: {{ section.settings.text_color }};
+      text-decoration: underline;
+      font-size: 14px;
+      cursor: pointer;
+      
+      &:hover {
+        color: {{ section.settings.accent_color }};
+      }
+    }
+  </style>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var popup = document.querySelector('.newsletter-popup');
+      var popupClose = document.querySelector('.newsletter-popup__close');
+      var popupNoThanks = document.querySelector('[data-popup-no-thanks]');
+      var popupOverlay = document.querySelector('.newsletter-popup__overlay');
+      
+      // التحقق من ملفات تعريف الارتباط
+      function checkCookie() {
+        var popupClosed = localStorage.getItem('newsletter_popup_closed');
+        
+        if (!popupClosed) {
+          setTimeout(function() {
+            openPopup();
+          }, {{ section.settings.delay }} * 1000);
+        }
+      }
+      
+      // فتح النافذة المنبثقة
+      function openPopup() {
+        popup.classList.add('is-active');
+      }
+      
+      // إغلاق النافذة المنبثقة وتعيين ملف تعريف الارتباط
+      function closePopup() {
+        popup.classList.remove('is-active');
+        localStorage.setItem('newsletter_popup_closed', 'true');
+        
+        // إعادة تعيين بعد المدة المحددة
+        if ({{ section.settings.reset_days }} > 0) {
+          setTimeout(function() {
+            localStorage.removeItem('newsletter_popup_closed');
+          }, {{ section.settings.reset_days }} * 24 * 60 * 60 * 1000);
+        }
+      }
+      
+      // إضافة مستمعي الأحداث
+      if (popupClose) {
+        popupClose.addEventListener('click', closePopup);
+      }
+      
+      if (popupNoThanks) {
+        popupNoThanks.addEventListener('click', closePopup);
+      }
+      
+      if (popupOverlay) {
+        popupOverlay.addEventListener('click', closePopup);
+      }
+      
+      // تشغيل التحقق من ملفات تعريف الارتباط
+      checkCookie();
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "النشرة الإخبارية المنبثقة",
+  "settings": [
+    {
+      "type": "header",
+      "content": "إعدادات العرض"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter_popup",
+      "label": "تفعيل النافذة المنبثقة",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "delay",
+      "label": "التأخير قبل الظهور (بالثواني)",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "reset_days",
+      "label": "أيام قبل إعادة الظهور",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "default": 30,
+      "info": "استخدم 0 لإظهار النافذة المنبثقة في كل مرة"
+    },
+    {
+      "type": "header",
+      "content": "المحتوى"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "العنوان",
+      "default": "اشترك في نشرتنا الإخبارية"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "النص",
+      "default": "<p>اشترك في نشرتنا الإخبارية واحصل على خصم 10% على أول طلب لك، وكن أول من يتعرف على أحدث الإصدارات والعروض الحصرية!</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "صورة"
+    },
+    {
+      "type": "text",
+      "id": "no_thanks_text",
+      "label": "نص 'لا شكراً'",
+      "default": "لا، شكراً"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_disclaimer",
+      "label": "إظهار إخلاء المسؤولية",
+      "default": true
+    },
+    {
+      "type": "richtext",
+      "id": "disclaimer_text",
+      "label": "نص إخلاء المسؤولية",
+      "default": "<p>من خلال الاشتراك، أنت توافق على تلقي رسائل البريد الإلكتروني التسويقية. يمكنك إلغاء الاشتراك في أي وقت.</p>"
+    },
+    {
+      "type": "header",
+      "content": "الألوان"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "لون التمييز",
+      "default": "#339af0"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "disclaimer_color",
+      "label": "لون نص إخلاء المسؤولية",
+      "default": "#777777"
+    },
+    {
+      "type": "color",
+      "id": "close_button_color",
+      "label": "لون زر الإغلاق",
+      "default": "#777777"
+    }
+  ],
+  "presets": [
+    {
+      "name": "النشرة الإخبارية المنبثقة"
+    }
+  ]
+}
+{% endschema %}popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      overflow-y: auto;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .newsletter-popup.is-active {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .newsletter-popup__overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .newsletter-popup__container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 40px auto;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      
+      @media (max-width: 767px) {
+        margin: 20px;
+        width: calc(100% - 40px);
+      }
+    }
+    
+    .newsletter-popup__content {
+      display: flex;
+      flex-direction: column;
+      
+      @media (min-width: 768px) {
+        flex-direction: row;
+      }
+    }
+    
+    .newsletter-popup__image {
+      flex: 1;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      
+      @media (max-width: 767px) {
+        img {
+          max-height: 200px;
+        }
+      }
+    }
+    
+    .newsletter-popup__form-wrapper {
+      flex: 1;
+      padding: 40px;
+      
+      @media (max-width: 767px) {
+        padding: 30px 20px;
+      }
+    }
+    
+    .newsletter-popup__close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 30px;
+      height: 30px;
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: {{ section.settings.close_button_color }};
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &:hover {
+        color: {{ section.settings.text_color }};
+      }
+    }
+    
+    .newsletter-popup__title {
+      margin-bottom: 15px;
+      font-size: 24px;
+      font-weight: 700;
+      color: {{ section.settings.text_color }};
+      
+      @media (min-width: 768px) {
+        font-size: 28px;
+      }
+    }
+    
+    .newsletter-popup__text {
+      margin-bottom: 25px;
+      color: {{ section.settings.text_color }};
+    }
+    
+    .newsletter-popup__form {
+      margin-bottom: 20px;
+    }
+    
+    .newsletter-popup__form-field-wrapper {
+      display: flex;
+      flex-direction: column;
+      
+      @media (min-width: 480px) {
+        flex-direction: row;
+      }
+    }
+    
+    .newsletter-

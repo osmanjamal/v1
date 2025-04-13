@@ -1,0 +1,167 @@
+<div id="CartDrawer" class="cart-drawer" data-section-id="{{ section.id }}" data-section-type="cart-drawer">
+  <div class="cart-drawer__container">
+    <div class="cart-drawer__header">
+      <h2 class="cart-drawer__title">{{ 'cart.general.title' | t }}</h2>
+      <button type="button" class="cart-drawer__close" aria-label="{{ 'general.accessibility.close' | t }}">
+        <span class="icon-close" aria-hidden="true"></span>
+      </button>
+    </div>
+    
+    <div class="cart-drawer__footer">
+      {%- if cart.item_count > 0 -%}
+        {%- if section.settings.show_note -%}
+          <div class="cart-drawer__note">
+            <label for="CartNote" class="cart-drawer__note-label">{{ 'cart.general.note' | t }}</label>
+            <textarea id="CartNote" name="note" class="cart-drawer__note-input">{{ cart.note }}</textarea>
+          </div>
+        {%- endif -%}
+        
+        <div class="cart-drawer__subtotal">
+          <span class="cart-drawer__subtotal-label">{{ 'cart.general.subtotal' | t }}</span>
+          <span class="cart-drawer__subtotal-price" data-cart-subtotal>{{ cart.total_price | money }}</span>
+        </div>
+        
+        {%- if cart.cart_level_discount_applications.size > 0 -%}
+          <ul class="cart-drawer__discounts">
+            {%- for discount in cart.cart_level_discount_applications -%}
+              <li class="cart-drawer__discount">
+                <span class="cart-drawer__discount-badge">
+                  <span class="icon-tag" aria-hidden="true"></span>
+                  {{ discount.title }}
+                </span>
+                <span class="cart-drawer__discount-amount">-{{ discount.total_allocated_amount | money }}</span>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+        
+        <p class="cart-drawer__shipping-note">{{ 'cart.general.shipping_calculated_at_checkout' | t }}</p>
+        
+        <div class="cart-drawer__buttons">
+          <a href="/cart" class="cart-drawer__view-cart">{{ 'layout.cart.view_cart' | t }}</a>
+          <a href="/checkout" class="btn btn--primary cart-drawer__checkout">{{ 'cart.general.checkout' | t }}</a>
+        </div>
+        
+        {%- if section.settings.show_payment_icons -%}
+          <div class="cart-drawer__payment-methods">
+            <span class="visually-hidden">{{ 'checkout.payment_methods' | t }}</span>
+            <ul class="payment-icons">
+              {%- for type in shop.enabled_payment_types -%}
+                <li class="payment-icons__item">
+                  {{ type | payment_type_svg_tag: class: 'payment-icons__icon' }}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // سيتم تنفيذ وظائف سلة التسوق عبر ملف theme.js
+  });
+</script>
+
+{% schema %}
+{
+  "name": "سلة التسوق",
+  "settings": [
+    {
+      "type": "header",
+      "content": "خيارات سلة التسوق"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "إظهار حقل الملاحظات",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "إظهار رموز الدفع",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "المنتجات المرتبطة"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_upsell",
+      "label": "إظهار المنتجات المرتبطة",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "upsell_title",
+      "label": "عنوان المنتجات المرتبطة",
+      "default": "قد يعجبك أيضاً"
+    },
+    {
+      "type": "collection",
+      "id": "upsell_collection",
+      "label": "مجموعة المنتجات المرتبطة",
+      "info": "اختر مجموعة تحتوي على المنتجات التي تريد عرضها كمنتجات مرتبطة"
+    }
+  ]
+}
+{% endschema %}
+    
+    <div class="cart-drawer__content">
+      <div class="cart-drawer__items" data-cart-items>
+        {%- if cart.item_count > 0 -%}
+          <!-- سيتم تحديث العناصر عن طريق جافا سكريبت -->
+        {%- else -%}
+          <div class="cart-drawer__empty">
+            <h2 class="cart-drawer__empty-title">{{ 'cart.general.empty' | t }}</h2>
+            <p class="cart-drawer__empty-text">{{ 'cart.general.empty_html' | t }}</p>
+            <p><a href="/collections/all" class="btn btn--primary">{{ 'cart.general.continue_shopping' | t }}</a></p>
+          </div>
+        {%- endif -%}
+      </div>
+      
+      {% if section.settings.show_upsell and cart.item_count > 0 %}
+        <div class="cart-drawer__upsell">
+          <h3 class="cart-drawer__upsell-title">{{ section.settings.upsell_title }}</h3>
+          <div class="cart-drawer__upsell-products">
+            {% for product in collections[section.settings.upsell_collection].products limit: 2 %}
+              <div class="cart-drawer__upsell-product">
+                <a href="{{ product.url }}" class="cart-drawer__upsell-link">
+                  <div class="cart-drawer__upsell-image">
+                    {% if product.featured_image %}
+                      <img src="{{ product.featured_image | img_url: '100x100', crop: 'center' }}" 
+                          alt="{{ product.featured_image.alt | escape }}"
+                          width="100"
+                          height="100"
+                          loading="lazy">
+                    {% else %}
+                      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                    {% endif %}
+                  </div>
+                  <div class="cart-drawer__upsell-content">
+                    <h4 class="cart-drawer__upsell-product-title">{{ product.title }}</h4>
+                    <div class="cart-drawer__upsell-price">
+                      <span class="cart-drawer__upsell-current-price">{{ product.price | money }}</span>
+                      {% if product.compare_at_price > product.price %}
+                        <s class="cart-drawer__upsell-compare-price">{{ product.compare_at_price | money }}</s>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+                {% unless product.variants.size > 1 %}
+                  <button type="button" 
+                    class="cart-drawer__upsell-add-button js-quick-add-to-cart"
+                    data-product-id="{{ product.id }}"
+                    data-variant-id="{{ product.variants.first.id }}">
+                    {{ 'products.product.add_to_cart' | t }}
+                  </button>
+                {% endunless %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}

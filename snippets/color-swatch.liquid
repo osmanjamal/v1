@@ -1,0 +1,41 @@
+{%- comment -%}
+  استخدم هذا القالب لعرض خيارات الألوان في صفحة المنتج
+  المدخلات:
+  - color: اللون المراد عرضه
+  - variant_id: معرف المتغير المرتبط بهذا اللون (اختياري)
+  - is_active: ما إذا كان هذا اللون مختارًا (اختياري)
+  - index: ترتيب اللون في القائمة (اختياري)
+  - forloop: معلومات التكرار إذا كان يتم استخدامه داخل حلقة (اختياري)
+{%- endcomment -%}
+
+{%- liquid
+  assign color_id = color | handle
+  assign input_id = "Color-" | append: section.id | append: "-" | append: forloop.index
+  assign input_id = input_id | default: "Color-swatch-" | append: color_id
+  assign swatch_style = ''
+  
+  # حاول العثور على صورة للون من الأصول
+  assign color_file_name = color_id | append: '.png'
+  assign color_image = images[color_file_name]
+  
+  if color_image != blank
+    assign swatch_style = swatch_style | append: 'background-image: url(' | append: color_image | img_url: '50x' | append: ');'
+  else
+    assign swatch_style = swatch_style | append: 'background-color: ' | append: color_id | append: ';'
+  endif
+-%}
+
+<div class="color-swatch{% if is_active %} is-active{% endif %}">
+  <input type="radio" 
+    id="{{ input_id }}"
+    name="color-option"
+    value="{{ color | escape }}"
+    class="color-swatch__radio"
+    {% if is_active %}checked{% endif %}
+    {% if variant_id %}data-variant-id="{{ variant_id }}"{% endif %}>
+  
+  <label for="{{ input_id }}" class="color-swatch__label" title="{{ color | escape }}">
+    <span class="color-swatch__color" style="{{ swatch_style }}"></span>
+    <span class="color-swatch__tooltip">{{ color }}</span>
+  </label>
+</div>

@@ -1,0 +1,283 @@
+<mobile-navigation class="mobile-menu" id="MobileNav" data-section-id="{{ section.id }}" data-section-type="mobile-menu">
+  <div class="mobile-menu__overlay"></div>
+  
+  <div class="mobile-menu__container">
+    <!-- رأس القائمة -->
+    <div class="mobile-menu__header">
+      <h2 class="mobile-menu__title">{{ 'layout.navigation.toggle_menu' | t }}</h2>
+      <button type="button" class="mobile-menu__close" aria-label="{{ 'general.accessibility.close' | t }}">
+        <span class="icon-close" aria-hidden="true"></span>
+      </button>
+    </div>
+    
+    <!-- محتوى القائمة -->
+    <div class="mobile-menu__content">
+      <!-- روابط التنقل الرئيسية -->
+      <nav class="mobile-menu__main-nav" role="navigation">
+        <ul class="mobile-menu__nav">
+          {%- for link in linklists[section.settings.main_menu_link_list].links -%}
+            {%- assign has_dropdown = false -%}
+            {%- if link.links.size > 0 -%}
+              {%- assign has_dropdown = true -%}
+            {%- endif -%}
+            
+            <li class="mobile-menu__item {% if link.active %}mobile-menu__item--active{% endif %}">
+              {%- if has_dropdown -%}
+                <div class="mobile-menu__link-wrapper">
+                  <a href="{{ link.url }}" class="mobile-menu__link {% if link.active %}mobile-menu__link--active{% endif %}">
+                    {{ link.title }}
+                  </a>
+                  <button type="button" class="mobile-menu__dropdown-toggle" aria-expanded="false">
+                    <span class="icon-chevron-down" aria-hidden="true"></span>
+                    <span class="visually-hidden">{{ 'general.accessibility.toggle_dropdown' | t }}</span>
+                  </button>
+                </div>
+                
+                <ul class="mobile-menu__dropdown">
+                  {%- for childlink in link.links -%}
+                    <li class="mobile-menu__dropdown-item {% if childlink.active %}mobile-menu__dropdown-item--active{% endif %}">
+                      <a href="{{ childlink.url }}" class="mobile-menu__dropdown-link {% if childlink.active %}mobile-menu__dropdown-link--active{% endif %}">
+                        {{ childlink.title }}
+                      </a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              {%- else -%}
+                <a href="{{ link.url }}" class="mobile-menu__link {% if link.active %}mobile-menu__link--active{% endif %}">
+                  {{ link.title }}
+                </a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+      
+      <!-- روابط إضافية -->
+      {%- if section.settings.show_secondary_menu and section.settings.secondary_menu != blank -%}
+        <div class="mobile-menu__section">
+          <h3 class="mobile-menu__section-title">{{ linklists[section.settings.secondary_menu].title }}</h3>
+          <ul class="mobile-menu__secondary-nav">
+            {%- for link in linklists[section.settings.secondary_menu].links -%}
+              <li class="mobile-menu__secondary-item">
+                <a href="{{ link.url }}" class="mobile-menu__secondary-link {% if link.active %}mobile-menu__secondary-link--active{% endif %}">
+                  {{ link.title }}
+                </a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endif -%}
+      
+      <!-- أدوات المستخدم -->
+      <div class="mobile-menu__section">
+        <div class="mobile-menu__user-actions">
+          <!-- رابط الحساب -->
+          {%- if shop.customer_accounts_enabled -%}
+            <div class="mobile-menu__user-account">
+              {%- if customer -%}
+                <a href="/account" class="mobile-menu__user-link">
+                  <span class="icon-user" aria-hidden="true"></span>
+                  {{ 'layout.customer.account' | t }}
+                </a>
+                <a href="{{ routes.account_logout_url }}" class="mobile-menu__user-link">
+                  <span class="icon-logout" aria-hidden="true"></span>
+                  {{ 'layout.customer.logout' | t }}
+                </a>
+              {%- else -%}
+                <a href="{{ routes.account_login_url }}" class="mobile-menu__user-link">
+                  <span class="icon-user" aria-hidden="true"></span>
+                  {{ 'layout.customer.log_in' | t }}
+                </a>
+                <a href="{{ routes.account_register_url }}" class="mobile-menu__user-link">
+                  <span class="icon-user-plus" aria-hidden="true"></span>
+                  {{ 'layout.customer.register' | t }}
+                </a>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+          
+          <!-- رابط العربة -->
+          <a href="/cart" class="mobile-menu__cart-link">
+            <span class="icon-cart" aria-hidden="true"></span>
+            {{ 'layout.cart.title' | t }}
+            <span class="mobile-menu__cart-count" data-cart-count>{{ cart.item_count }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- مقسم اللغة والعملة -->
+      {%- if section.settings.show_locale_selector and shop.published_locales.size > 1 -%}
+        <div class="mobile-menu__section">
+          <h3 class="mobile-menu__section-title">{{ 'general.language.language_selector' | t }}</h3>
+          <div class="mobile-menu__locale-selector">
+            <div class="locale-selector">
+              <label class="visually-hidden" for="MobileLocaleSelector">
+                {{ 'general.language.language_selector' | t }}
+              </label>
+              <div class="locale-selector__wrapper">
+                <select id="MobileLocaleSelector" class="locale-selector__select" aria-describedby="MobileLocaleSelectorHelp">
+                  {%- for locale in shop.published_locales -%}
+                    <option value="{{ locale.iso_code }}" 
+                      {% if locale.iso_code == shop.locale %}selected{% endif %}
+                      data-href="{{ locale.root_url }}">
+                      {{ locale.endonym_name }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                <span class="icon-chevron-down" aria-hidden="true"></span>
+              </div>
+              <span id="MobileLocaleSelectorHelp" class="visually-hidden">
+                {{ 'general.language.language_selector_help' | t }}
+              </span>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+      
+      {%- if section.settings.show_currency_selector and shop.enabled_currencies.size > 1 -%}
+        <div class="mobile-menu__section">
+          <h3 class="mobile-menu__section-title">{{ 'general.currency.currency_selector' | t }}</h3>
+          <div class="mobile-menu__currency-selector">
+            <div class="currency-selector">
+              <label class="visually-hidden" for="MobileCurrencySelector">
+                {{ 'general.currency.currency_selector' | t }}
+              </label>
+              <div class="currency-selector__wrapper">
+                <select id="MobileCurrencySelector" class="currency-selector__select" aria-describedby="MobileCurrencySelectorHelp">
+                  {%- for currency in shop.enabled_currencies -%}
+                    <option value="{{ currency.iso_code }}" 
+                      {% if currency.iso_code == cart.currency.iso_code %}selected{% endif %}>
+                      {{ currency.iso_code }} {{ currency.symbol }}
+                    </option>
+                  {%- endfor -%}
+                </select>
+                <span class="icon-chevron-down" aria-hidden="true"></span>
+              </div>
+              <span id="MobileCurrencySelectorHelp" class="visually-hidden">
+                {{ 'general.currency.currency_selector_help' | t }}
+              </span>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+      
+      <!-- وسائل التواصل الاجتماعي -->
+      {%- if section.settings.show_social_icons -%}
+        <div class="mobile-menu__section">
+          <h3 class="mobile-menu__section-title">{{ section.settings.social_title }}</h3>
+          <ul class="social-icons">
+            {%- if settings.social_facebook_link != blank -%}
+              <li class="social-icons__item">
+                <a href="{{ settings.social_facebook_link }}" 
+                  class="social-icons__link" 
+                  target="_blank" 
+                  rel="noopener"
+                  aria-label="{{ 'general.social.follow_on_facebook' | t }}">
+                  <span class="icon-facebook" aria-hidden="true"></span>
+                </a>
+              </li>
+            {%- endif -%}
+            
+            {%- if settings.social_instagram_link != blank -%}
+              <li class="social-icons__item">
+                <a href="{{ settings.social_instagram_link }}" 
+                  class="social-icons__link" 
+                  target="_blank" 
+                  rel="noopener"
+                  aria-label="{{ 'general.social.follow_on_instagram' | t }}">
+                  <span class="icon-instagram" aria-hidden="true"></span>
+                </a>
+              </li>
+            {%- endif -%}
+            
+            {%- if settings.social_twitter_link != blank -%}
+              <li class="social-icons__item">
+                <a href="{{ settings.social_twitter_link }}" 
+                  class="social-icons__link" 
+                  target="_blank" 
+                  rel="noopener"
+                  aria-label="{{ 'general.social.follow_on_twitter' | t }}">
+                  <span class="icon-twitter" aria-hidden="true"></span>
+                </a>
+              </li>
+            {%- endif -%}
+            
+            {%- if settings.social_youtube_link != blank -%}
+              <li class="social-icons__item">
+                <a href="{{ settings.social_youtube_link }}" 
+                  class="social-icons__link" 
+                  target="_blank" 
+                  rel="noopener"
+                  aria-label="{{ 'general.social.follow_on_youtube' | t }}">
+                  <span class="icon-youtube" aria-hidden="true"></span>
+                </a>
+              </li>
+            {%- endif -%}
+            
+            {%- if settings.social_tiktok_link != blank -%}
+              <li class="social-icons__item">
+                <a href="{{ settings.social_tiktok_link }}" 
+                  class="social-icons__link" 
+                  target="_blank" 
+                  rel="noopener"
+                  aria-label="{{ 'general.social.follow_on_tiktok' | t }}">
+                  <span class="icon-tiktok" aria-hidden="true"></span>
+                </a>
+              </li>
+            {%- endif -%}
+          </ul>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</mobile-navigation>
+
+{% schema %}
+{
+  "name": "القائمة المتنقلة",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "main_menu_link_list",
+      "label": "قائمة التنقل الرئيسية",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_menu",
+      "label": "إظهار قائمة ثانوية",
+      "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "secondary_menu",
+      "label": "قائمة ثانوية",
+      "info": "عرض المزيد من الروابط في القائمة المتنقلة"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "إظهار محدد اللغة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_currency_selector",
+      "label": "إظهار محدد العملة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_social_icons",
+      "label": "إظهار وسائل التواصل الاجتماعي",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "social_title",
+      "label": "عنوان وسائل التواصل الاجتماعي",
+      "default": "تابعنا"
+    }
+  ]
+}
+{% endschema %}

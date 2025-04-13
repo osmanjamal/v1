@@ -1,0 +1,180 @@
+{%- if section.settings.show_product_recommendations -%}
+  <div class="product-recommendations" data-section-id="{{ section.id }}" data-section-type="product-recommendations" data-product-id="{{ product.id }}" data-limit="{{ section.settings.products_to_show }}" data-url="{{ routes.product_recommendations_url }}">
+    <div class="container">
+      {%- if section.settings.heading != blank -%}
+        <div class="section-header">
+          <h2 class="section-header__title">{{ section.settings.heading }}</h2>
+          
+          {%- if section.settings.subheading != blank -%}
+            <div class="section-header__subtitle">{{ section.settings.subheading }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      
+      <div class="product-recommendations__grid">
+        <div class="product-recommendations__loading">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var productRecommendationsSection = document.querySelector('.product-recommendations');
+      if (!productRecommendationsSection) return;
+      
+      // بيانات القسم
+      var productId = productRecommendationsSection.getAttribute('data-product-id');
+      var limit = productRecommendationsSection.getAttribute('data-limit');
+      var baseUrl = productRecommendationsSection.getAttribute('data-url');
+      
+      // بناء URL طلب التوصيات
+      var requestUrl = baseUrl + '?section_id={{ section.id }}&product_id=' + productId + '&limit=' + limit;
+      
+      // لا تحميل على الأجهزة المحمولة؟
+      {% if section.settings.hide_on_mobile and settings.show_mobile_layout %}
+        if (window.innerWidth < 768 && {{ section.settings.hide_on_mobile | json }}) {
+          productRecommendationsSection.style.display = 'none';
+          return;
+        }
+      {% endif %}
+      
+      // طلب توصيات المنتج
+      fetch(requestUrl)
+        .then(function(response) {
+          return response.text();
+        })
+        .then(function(html) {
+          if (html.trim() === '') {
+            // إخفاء القسم إذا لم تكن هناك توصيات
+            productRecommendationsSection.style.display = 'none';
+            return;
+          }
+          
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var recommendationsGrid = doc.querySelector('.product-recommendations__grid');
+          
+          if (recommendationsGrid && recommendationsGrid.children.length > 1) {
+            document.querySelector('.product-recommendations__grid').innerHTML = recommendationsGrid.innerHTML;
+            
+            // إعادة تهيئة أي وظائف من المنتجات الموصى بها
+            if (window.theme) {
+              if (theme.currencyConverter) {
+                theme.currencyConverter.update();
+              }
+              
+              // تهيئة العرض السريع
+              var quickViewButtons = document.querySelectorAll('.product-recommendations .js-quick-view');
+              quickViewButtons.forEach(function(button) {
+                button.addEventListener('click', function(evt) {
+                  evt.preventDefault();
+                  var productHandle = this.getAttribute('data-product-handle');
+                  if (productHandle && typeof theme.quickView !== 'undefined') {
+                    theme.quickView.load(productHandle);
+                  }
+                });
+              });
+              
+              // تهيئة الإضافة السريعة إلى السلة
+              var quickAddButtons = document.querySelectorAll('.product-recommendations .js-quick-add-to-cart');
+              quickAddButtons.forEach(function(button) {
+                button.addEventListener('click', function(evt) {
+                  evt.preventDefault();
+                  var productId = this.getAttribute('data-product-id');
+                  var variantId = this.getAttribute('data-variant-id');
+                  if (variantId && typeof theme.cart !== 'undefined') {
+                    theme.cart.addItemFromButton(this, variantId);
+                  }
+                });
+              });
+            }
+            
+            // تهيئة سلايدر Flickity إذا كان الخيار مفعلاً
+            if ('{{ section.settings.layout }}' === 'slider' && typeof Flickity !== 'undefined') {
+              new Flickity('.product-recommendations__slider', {
+                cellAlign: 'left',
+                contain: true,
+                pageDots: false,
+                prevNextButtons: true,
+                wrapAround: false,
+                adaptiveHeight: true,
+                groupCells: true
+              });
+            }
+          } else {
+            // إخفاء القسم إذا لم تكن هناك توصيات كافية
+            productRecommendationsSection.style.display = 'none';
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading product recommendations:', error);
+          productRecommendationsSection.style.display = 'none';
+        });
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "توصيات المنتج",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_product_recommendations",
+      "label": "إظهار توصيات المنتج",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "العنوان",
+      "default": "قد يعجبك أيضاً"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "العنوان الفرعي",
+      "default": "منتجات مشابهة قد تهمك"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "التخطيط",
+      "options": [
+        {
+          "value": "grid",
+          "label": "شبكة"
+        },
+        {
+          "value": "slider",
+          "label": "سلايدر"
+        }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "عدد المنتجات المعروضة",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "checkbox",
+      "id": "hide_on_mobile",
+      "label": "إخفاء على الهاتف المحمول",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "توصيات المنتج",
+      "category": "المنتج"
+    }
+  ]
+}
+{% endschema %}

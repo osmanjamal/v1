@@ -1,0 +1,197 @@
+<div class="quick-view-modal" data-section-id="{{ section.id }}" data-section-type="quick-view-modal">
+  <div class="quick-view-modal__overlay"></div>
+  <div class="quick-view-modal__container">
+    <button type="button" class="quick-view-modal__close" aria-label="{{ 'general.accessibility.close' | t }}">
+      <span class="icon-close" aria-hidden="true"></span>
+    </button>
+    
+    <div class="quick-view-modal__content">
+      <!-- محتوى العرض السريع للمنتج سيتم تحميله ديناميكيًا -->
+      <div class="quick-view-modal__loading">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.querySelector('.quick-view-modal');
+    var modalContent = document.querySelector('.quick-view-modal__content');
+    var modalClose = document.querySelector('.quick-view-modal__close');
+    var modalOverlay = document.querySelector('.quick-view-modal__overlay');
+    
+    // وظيفة فتح النافذة المنبثقة
+    function openQuickViewModal() {
+      modal.classList.add('is-active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // وظيفة إغلاق النافذة المنبثقة
+    function closeQuickViewModal() {
+      modal.classList.remove('is-active');
+      document.body.style.overflow = '';
+      
+      // مسح المحتوى بعد إغلاق النافذة المنبثقة
+      setTimeout(function() {
+        modalContent.innerHTML = '<div class="quick-view-modal__loading"><div class="loading-spinner"></div></div>';
+      }, 300);
+    }
+    
+    // وظيفة تحميل المحتوى
+    function loadQuickViewContent(productHandle) {
+      if (!productHandle) return;
+      
+      // إظهار حالة التحميل
+      modalContent.innerHTML = '<div class="quick-view-modal__loading"><div class="loading-spinner"></div></div>';
+      openQuickViewModal();
+      
+      // تحميل محتوى المنتج
+      fetch('/products/' + productHandle + '?view=quick-view')
+        .then(function(response) {
+          return response.text();
+        })
+        .then(function(html) {
+          modalContent.innerHTML = html;
+          
+          // تهيئة وظائف المنتج
+          if (window.theme && theme.productFunctions) {
+            theme.productFunctions.initQuickView();
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading quick view:', error);
+          modalContent.innerHTML = '<div class="quick-view-modal__error">حدث خطأ أثناء تحميل المنتج. يرجى المحاولة مرة أخرى.</div>';
+        });
+    }
+    
+    // مستمعو الأحداث
+    document.addEventListener('click', function(evt) {
+      var quickViewTrigger = evt.target.closest('.js-quick-view');
+      if (quickViewTrigger) {
+        evt.preventDefault();
+        var productHandle = quickViewTrigger.getAttribute('data-product-handle');
+        loadQuickViewContent(productHandle);
+      }
+    });
+    
+    if (modalClose) {
+      modalClose.addEventListener('click', closeQuickViewModal);
+    }
+    
+    if (modalOverlay) {
+      modalOverlay.addEventListener('click', closeQuickViewModal);
+    }
+    
+    // مستمع لمفتاح Escape
+    document.addEventListener('keydown', function(evt) {
+      if (evt.key === 'Escape' && modal.classList.contains('is-active')) {
+        closeQuickViewModal();
+      }
+    });
+  });
+</script>
+
+<style>
+  .quick-view-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .quick-view-modal.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .quick-view-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .quick-view-modal__container {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    max-height: 90vh;
+    margin: 5vh auto;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    
+    @media (max-width: 1100px) {
+      margin: 5vh 20px;
+      width: calc(100% - 40px);
+    }
+  }
+  
+  .quick-view-modal__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background-color: #fff;
+    }
+  }
+  
+  .quick-view-modal__content {
+    position: relative;
+    min-height: 300px;
+  }
+  
+  .quick-view-modal__loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border-width: 3px;
+    }
+  }
+  
+  .quick-view-modal__error {
+    padding: 30px;
+    text-align: center;
+    color: #721c24;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "العرض السريع",
+  "settings": []
+}
+{% endschema %}

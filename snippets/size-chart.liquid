@@ -1,0 +1,458 @@
+{%- comment -%}
+  استخدم هذا القالب لعرض جدول المقاسات المناسب للمنتج
+  المدخلات:
+  - product_type: نوع المنتج (اختياري)
+  - product_vendor: مورد المنتج (اختياري)
+{%- endcomment -%}
+
+{%- liquid
+  # تحديد نوع جدول المقاسات بناءً على نوع المنتج أو المورد
+  assign size_chart_type = 'default'
+  
+  if product_type contains 'أحذية' or product_type contains 'حذاء'
+    assign size_chart_type = 'shoes'
+  elsif product_type contains 'ملابس' or product_type contains 'قميص' or product_type contains 'سروال'
+    assign size_chart_type = 'clothing'
+  endif
+  
+  # مصادر اسمية للبيانات - في الإنتاج، يمكن أن تكون هذه متغيرات أو نصوصاً من المشرف
+  assign chart_title = 'جدول المقاسات'
+  assign chart_description = 'يرجى استخدام الجدول أدناه للعثور على المقاس المناسب لك. إذا كان مقاسك بين مقاسين، فننصح باختيار المقاس الأكبر.'
+-%}
+
+<div class="size-chart">
+  <div class="size-chart__header">
+    <h3 class="size-chart__title">{{ chart_title }}</h3>
+    <p class="size-chart__description">{{ chart_description }}</p>
+  </div>
+  
+  <div class="size-chart__content">
+    {%- case size_chart_type -%}
+      {%- when 'shoes' -%}
+        <div class="size-chart__tabs">
+          <button type="button" class="size-chart__tab size-chart__tab--active" data-tab="men">رجالي</button>
+          <button type="button" class="size-chart__tab" data-tab="women">نسائي</button>
+          <button type="button" class="size-chart__tab" data-tab="kids">أطفال</button>
+        </div>
+        
+        <div class="size-chart__panels">
+          <div class="size-chart__panel size-chart__panel--active" data-panel="men">
+            <table class="size-chart__table">
+              <thead>
+                <tr>
+                  <th>مقاس US</th>
+                  <th>مقاس UK</th>
+                  <th>مقاس EU</th>
+                  <th>طول القدم (سم)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>7</td>
+                  <td>6</td>
+                  <td>40</td>
+                  <td>25</td>
+                </tr>
+                <tr>
+                  <td>7.5</td>
+                  <td>6.5</td>
+                  <td>40.5</td>
+                  <td>25.5</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>7</td>
+                  <td>41</td>
+                  <td>26</td>
+                </tr>
+                <tr>
+                  <td>8.5</td>
+                  <td>7.5</td>
+                  <td>42</td>
+                  <td>26.5</td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>8</td>
+                  <td>42.5</td>
+                  <td>27</td>
+                </tr>
+                <tr>
+                  <td>9.5</td>
+                  <td>8.5</td>
+                  <td>43</td>
+                  <td>27.5</td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>9</td>
+                  <td>44</td>
+                  <td>28</td>
+                </tr>
+                <tr>
+                  <td>10.5</td>
+                  <td>9.5</td>
+                  <td>44.5</td>
+                  <td>28.5</td>
+                </tr>
+                <tr>
+                  <td>11</td>
+                  <td>10</td>
+                  <td>45</td>
+                  <td>29</td>
+                </tr>
+                <tr>
+                  <td>11.5</td>
+                  <td>10.5</td>
+                  <td>45.5</td>
+                  <td>29.5</td>
+                </tr>
+                <tr>
+                  <td>12</td>
+                  <td>11</td>
+                  <td>46</td>
+                  <td>30</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="size-chart__panel" data-panel="women">
+            <table class="size-chart__table">
+              <thead>
+                <tr>
+                  <th>مقاس US</th>
+                  <th>مقاس UK</th>
+                  <th>مقاس EU</th>
+                  <th>طول القدم (سم)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>5</td>
+                  <td>3</td>
+                  <td>35.5</td>
+                  <td>22</td>
+                </tr>
+                <tr>
+                  <td>5.5</td>
+                  <td>3.5</td>
+                  <td>36</td>
+                  <td>22.5</td>
+                </tr>
+                <tr>
+                  <td>6</td>
+                  <td>4</td>
+                  <td>36.5</td>
+                  <td>23</td>
+                </tr>
+                <tr>
+                  <td>6.5</td>
+                  <td>4.5</td>
+                  <td>37</td>
+                  <td>23.5</td>
+                </tr>
+                <tr>
+                  <td>7</td>
+                  <td>5</td>
+                  <td>38</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td>7.5</td>
+                  <td>5.5</td>
+                  <td>38.5</td>
+                  <td>24.5</td>
+                </tr>
+                <tr>
+                  <td>8</td>
+                  <td>6</td>
+                  <td>39</td>
+                  <td>25</td>
+                </tr>
+                <tr>
+                  <td>8.5</td>
+                  <td>6.5</td>
+                  <td>40</td>
+                  <td>25.5</td>
+                </tr>
+                <tr>
+                  <td>9</td>
+                  <td>7</td>
+                  <td>40.5</td>
+                  <td>26</td>
+                </tr>
+                <tr>
+                  <td>9.5</td>
+                  <td>7.5</td>
+                  <td>41</td>
+                  <td>26.5</td>
+                </tr>
+                <tr>
+                  <td>10</td>
+                  <td>8</td>
+                  <td>42</td>
+                  <td>27</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="size-chart__panel" data-panel="kids">
+            <table class="size-chart__table">
+              <thead>
+                <tr>
+                  <th>مقاس US</th>
+                  <th>مقاس UK</th>
+                  <th>مقاس EU</th>
+                  <th>طول القدم (سم)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>10.5C</td>
+                  <td>10C</td>
+                  <td>27</td>
+                  <td>16.5</td>
+                </tr>
+                <tr>
+                  <td>11.5C</td>
+                  <td>11C</td>
+                  <td>29</td>
+                  <td>17.5</td>
+                </tr>
+                <tr>
+                  <td>12.5C</td>
+                  <td>12C</td>
+                  <td>30</td>
+                  <td>18.5</td>
+                </tr>
+                <tr>
+                  <td>13.5C</td>
+                  <td>13C</td>
+                  <td>31</td>
+                  <td>19.5</td>
+                </tr>
+                <tr>
+                  <td>1Y</td>
+                  <td>13.5</td>
+                  <td>32</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>1.5Y</td>
+                  <td>1</td>
+                  <td>33</td>
+                  <td>20.5</td>
+                </tr>
+                <tr>
+                  <td>2Y</td>
+                  <td>1.5</td>
+                  <td>33.5</td>
+                  <td>21</td>
+                </tr>
+                <tr>
+                  <td>2.5Y</td>
+                  <td>2</td>
+                  <td>34</td>
+                  <td>21.5</td>
+                </tr>
+                <tr>
+                  <td>3Y</td>
+                  <td>2.5</td>
+                  <td>35</td>
+                  <td>22</td>
+                </tr>
+                <tr>
+                  <td>3.5Y</td>
+                  <td>3</td>
+                  <td>35.5</td>
+                  <td>22.5</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+      {%- when 'clothing' -%}
+        <div class="size-chart__tabs">
+          <button type="button" class="size-chart__tab size-chart__tab--active" data-tab="men">رجالي</button>
+          <button type="button" class="size-chart__tab" data-tab="women">نسائي</button>
+        </div>
+        
+        <div class="size-chart__panels">
+          <div class="size-chart__panel size-chart__panel--active" data-panel="men">
+            <table class="size-chart__table">
+              <thead>
+                <tr>
+                  <th>المقاس</th>
+                  <th>الصدر (سم)</th>
+                  <th>الخصر (سم)</th>
+                  <th>الورك (سم)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>XS</td>
+                  <td>86-91</td>
+                  <td>71-76</td>
+                  <td>86-91</td>
+                </tr>
+                <tr>
+                  <td>S</td>
+                  <td>91-96</td>
+                  <td>76-81</td>
+                  <td>91-96</td>
+                </tr>
+                <tr>
+                  <td>M</td>
+                  <td>96-101</td>
+                  <td>81-86</td>
+                  <td>96-101</td>
+                </tr>
+                <tr>
+                  <td>L</td>
+                  <td>101-106</td>
+                  <td>86-91</td>
+                  <td>101-106</td>
+                </tr>
+                <tr>
+                  <td>XL</td>
+                  <td>106-111</td>
+                  <td>91-96</td>
+                  <td>106-111</td>
+                </tr>
+                <tr>
+                  <td>XXL</td>
+                  <td>111-116</td>
+                  <td>96-101</td>
+                  <td>111-116</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div class="size-chart__panel" data-panel="women">
+            <table class="size-chart__table">
+              <thead>
+                <tr>
+                  <th>المقاس</th>
+                  <th>الصدر (سم)</th>
+                  <th>الخصر (سم)</th>
+                  <th>الورك (سم)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>XS</td>
+                  <td>76-81</td>
+                  <td>61-66</td>
+                  <td>86-91</td>
+                </tr>
+                <tr>
+                  <td>S</td>
+                  <td>81-86</td>
+                  <td>66-71</td>
+                  <td>91-96</td>
+                </tr>
+                <tr>
+                  <td>M</td>
+                  <td>86-91</td>
+                  <td>71-76</td>
+                  <td>96-101</td>
+                </tr>
+                <tr>
+                  <td>L</td>
+                  <td>91-96</td>
+                  <td>76-81</td>
+                  <td>101-106</td>
+                </tr>
+                <tr>
+                  <td>XL</td>
+                  <td>96-101</td>
+                  <td>81-86</td>
+                  <td>106-111</td>
+                </tr>
+                <tr>
+                  <td>XXL</td>
+                  <td>101-106</td>
+                  <td>86-91</td>
+                  <td>111-116</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+      {%- else -%}
+        <div class="size-chart__generic">
+          <p class="size-chart__note">يرجى مراجعة تفاصيل المنتج للحصول على معلومات المقاس الدقيقة.</p>
+          <table class="size-chart__table">
+            <thead>
+              <tr>
+                <th>المقاس العام</th>
+                <th>المقاس العددي</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>XS</td>
+                <td>0-2</td>
+              </tr>
+              <tr>
+                <td>S</td>
+                <td>4-6</td>
+              </tr>
+              <tr>
+                <td>M</td>
+                <td>8-10</td>
+              </tr>
+              <tr>
+                <td>L</td>
+                <td>12-14</td>
+              </tr>
+              <tr>
+                <td>XL</td>
+                <td>16-18</td>
+              </tr>
+              <tr>
+                <td>XXL</td>
+                <td>20-22</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+    {%- endcase -%}
+  </div>
+  
+  <div class="size-chart__footer">
+    <p class="size-chart__note">ملاحظة: قد تختلف المقاسات بين العلامات التجارية المختلفة. هذه القياسات هي إرشادية فقط.</p>
+    <p class="size-chart__help">إذا كنت غير متأكد من المقاس المناسب لك، يرجى <a href="/pages/contact">الاتصال بنا</a> للمساعدة.</p>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.size-chart__tab');
+    const panels = document.querySelectorAll('.size-chart__panel');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabID = this.getAttribute('data-tab');
+        
+        // تحديث حالة التبويب النشط
+        tabs.forEach(t => t.classList.remove('size-chart__tab--active'));
+        this.classList.add('size-chart__tab--active');
+        
+        // عرض اللوحة المناسبة
+        panels.forEach(panel => {
+          if (panel.getAttribute('data-panel') === tabID) {
+            panel.classList.add('size-chart__panel--active');
+          } else {
+            panel.classList.remove('size-chart__panel--active');
+          }
+        });
+      });
+    });
+  });
+</script>

@@ -1,0 +1,231 @@
+{%- if section.settings.show_recently_viewed -%}
+  <div class="recently-viewed-products" data-section-id="{{ section.id }}" data-section-type="recently-viewed-products" data-limit="{{ section.settings.products_to_show }}">
+    <div class="container">
+      {%- if section.settings.heading != blank -%}
+        <div class="section-header">
+          <h2 class="section-header__title">{{ section.settings.heading }}</h2>
+          
+          {%- if section.settings.subheading != blank -%}
+            <div class="section-header__subtitle">{{ section.settings.subheading }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      
+      <div class="recently-viewed-products__grid">
+        <!-- سيتم تحميل المنتجات ديناميكيًا عبر JavaScript -->
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var recentlyViewedSection = document.querySelector('.recently-viewed-products');
+      if (!recentlyViewedSection) return;
+      
+      // الحصول على عدد المنتجات المطلوب عرضها
+      var limit = parseInt(recentlyViewedSection.getAttribute('data-limit'), 10);
+      
+      // الحصول على بيانات المنتج الحالي (إذا كنا في صفحة منتج)
+      var currentProductId = '';
+      var productJsonElement = document.querySelector('[data-product-json]');
+      if (productJsonElement) {
+        try {
+          var productData = JSON.parse(productJsonElement.innerHTML);
+          currentProductId = productData.id;
+        } catch (e) {
+          console.error('Error parsing product JSON:', e);
+        }
+      }
+      
+      // قراءة سجل المنتجات المشاهدة
+      function getRecentlyViewedProducts() {
+        var savedProducts = localStorage.getItem('recently_viewed_products');
+        
+        if (savedProducts) {
+          try {
+            return JSON.parse(savedProducts);
+          } catch (e) {
+            return [];
+          }
+        }
+        
+        return [];
+      }
+      
+      // تحديث سجل المنتجات المشاهدة
+      function updateRecentlyViewedProducts() {
+        if (!currentProductId) return;
+        
+        var recentProducts = getRecentlyViewedProducts();
+        
+        // إزالة المنتج الحالي من القائمة (إذا كان موجودًا)
+        var index = recentProducts.indexOf(currentProductId);
+        if (index > -1) {
+          recentProducts.splice(index, 1);
+        }
+        
+        // إضافة المنتج الحالي إلى بداية القائمة
+        recentProducts.unshift(currentProductId.toString());
+        
+        // الاحتفاظ بالعدد المطلوب فقط
+        recentProducts = recentProducts.slice(0, 20);
+        
+        // حفظ القائمة المحدثة
+        localStorage.setItem('recently_viewed_products', JSON.stringify(recentProducts));
+      }
+      
+      // تحميل المنتجات المشاهدة مؤخرًا
+      function loadRecentlyViewedProducts() {
+        var recentProducts = getRecentlyViewedProducts();
+        
+        // استبعاد المنتج الحالي
+        recentProducts = recentProducts.filter(function(id) {
+          return id !== currentProductId.toString();
+        });
+        
+        // التحقق مما إذا كانت هناك منتجات لعرضها
+        if (recentProducts.length === 0) {
+          recentlyViewedSection.style.display = 'none';
+          return;
+        }
+        
+        // عرض العدد المحدد من المنتجات
+        recentProducts = recentProducts.slice(0, limit);
+        
+        // تحميل بيانات المنتجات
+        var loadedProducts = 0;
+        var productsHtml = '';
+        
+        // استخدام تخطيط السلايدر أو الشبكة
+        var isSlider = '{{ section.settings.layout }}' === 'slider';
+        var gridClass = 'recently-viewed-products__grid';
+        var gridItemClass = 'recently-viewed-products__grid-item';
+        
+        if (isSlider) {
+          gridClass += ' recently-viewed-products__slider';
+          gridItemClass += ' recently-viewed-products__slide';
+        }
+        
+        // تحديث فئة CSS للحاوية
+        var gridContainer = document.querySelector('.recently-viewed-products__grid');
+        gridContainer.className = gridClass;
+        
+        // تحميل كل منتج
+        recentProducts.forEach(function(productId) {
+          fetch('/products/?view=recently-viewed-product&id=' + productId)
+            .then(function(response) {
+              return response.text();
+            })
+            .then(function(html) {
+              if (html.trim() !== '') {
+                // إضافة فئة CSS للعنصر
+                html = html.replace('<div class="product-card"', '<div class="product-card ' + gridItemClass + '"');
+                productsHtml += html;
+              }
+              
+              loadedProducts++;
+              
+              // بعد تحميل كل المنتجات
+              if (loadedProducts === recentProducts.length) {
+                if (productsHtml === '') {
+                  // إخفاء القسم إذا لم تكن هناك منتجات صالحة
+                  recentlyViewedSection.style.display = 'none';
+                  return;
+                }
+                
+                // تحديث HTML
+                gridContainer.innerHTML = productsHtml;
+                
+                // تهيئة وظائف المنتج
+                if (window.theme) {
+                  if (theme.currencyConverter) {
+                    theme.currencyConverter.update();
+                  }
+                }
+                
+                // تهيئة السلايدر إذا كان الخيار مفعلًا
+                if (isSlider && typeof Flickity !== 'undefined') {
+                  new Flickity('.recently-viewed-products__slider', {
+                    cellAlign: 'left',
+                    contain: true,
+                    pageDots: false,
+                    prevNextButtons: true,
+                    wrapAround: false,
+                    adaptiveHeight: true,
+                    groupCells: true
+                  });
+                }
+              }
+            })
+            .catch(function(error) {
+              console.error('Error loading product:', error);
+              loadedProducts++;
+            });
+        });
+      }
+      
+      // إضافة المنتج الحالي إلى القائمة المشاهدة مؤخرًا
+      updateRecentlyViewedProducts();
+      
+      // تحميل المنتجات المشاهدة مؤخرًا
+      loadRecentlyViewedProducts();
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "المنتجات المشاهدة مؤخرًا",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_recently_viewed",
+      "label": "إظهار المنتجات المشاهدة مؤخرًا",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "العنوان",
+      "default": "شاهدت مؤخرًا"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "العنوان الفرعي",
+      "default": "المنتجات التي قمت بمشاهدتها"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "التخطيط",
+      "options": [
+        {
+          "value": "grid",
+          "label": "شبكة"
+        },
+        {
+          "value": "slider",
+          "label": "سلايدر"
+        }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "عدد المنتجات المعروضة",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    }
+  ],
+  "presets": [
+    {
+      "name": "المنتجات المشاهدة مؤخرًا",
+      "category": "المنتج"
+    }
+  ]
+}
+{% endschema %}

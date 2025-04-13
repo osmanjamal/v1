@@ -1,0 +1,58 @@
+{%- if section.settings.show_announcement -%}
+  <div class="announcement-bar" data-section-id="{{ section.id }}" data-section-type="announcement-bar" style="background-color: {{ section.settings.background_color }};">
+    <div class="container">
+      {%- if section.settings.link -%}
+        <a href="{{ section.settings.link }}" class="announcement-bar__link">
+          <p class="announcement-bar__message" style="color: {{ section.settings.text_color }};">{{ section.settings.text | escape }}</p>
+        </a>
+      {%- else -%}
+        <p class="announcement-bar__message" style="color: {{ section.settings.text_color }};">{{ section.settings.text | escape }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "شريط الإعلانات",
+  "class": "announcement-bar-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "إظهار الإعلان",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "نص الإعلان",
+      "default": "أعلن عن الشحن المجاني أو الخصم أو أي عروض خاصة هنا"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "رابط الإعلان",
+      "info": "اختياري"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "لون الخلفية",
+      "default": "#339af0"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "لون النص",
+      "default": "#ffffff"
+    }
+  ],
+  "presets": [
+    {
+      "name": "شريط الإعلانات",
+      "category": "نص"
+    }
+  ]
+}
+{% endschema %}
