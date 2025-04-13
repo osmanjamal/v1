@@ -1,0 +1,1014 @@
+<div class="cart-template" data-section-id="{{ section.id }}" data-section-type="cart">
+  <div class="container">
+    <div class="cart-header">
+      <h1 class="cart-header__title">{{ 'cart.general.title' | t }}</h1>
+    </div>
+    
+    {% if cart.item_count > 0 %}
+      <form action="/cart" method="post" novalidate class="cart">
+        <div class="cart__inner">
+          <!-- عناصر السلة -->
+          <div class="cart__items">
+            <table class="cart-table">
+              <thead class="cart-table__header">
+                <tr>
+                  <th class="cart-table__header-col cart-table__header-col--product">{{ 'cart.general.product' | t }}</th>
+                  <th class="cart-table__header-col cart-table__header-col--price">{{ 'cart.items.price' | t }}</th>
+                  <th class="cart-table__header-col cart-table__header-col--quantity">{{ 'cart.items.quantity' | t }}</th>
+                  <th class="cart-table__header-col cart-table__header-col--total">{{ 'cart.items.total' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in cart.items %}
+                  <tr class="cart-table__row" data-cart-item data-cart-item-key="{{ item.key }}" data-cart-item-url="{{ item.url }}">
+                    <!-- المنتج -->
+                    <td class="cart-table__col cart-table__col--product">
+                      <div class="cart-product">
+                        <div class="cart-product__image">
+                          {% if item.image %}
+                            <img src="{{ item.image | img_url: '120x' }}" 
+                                alt="{{ item.image.alt | escape }}"
+                                width="120"
+                                height="120"
+                                loading="lazy">
+                          {% else %}
+                            {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                          {% endif %}
+                        </div>
+                        <div class="cart-product__content">
+                          <h3 class="cart-product__title">
+                            <a href="{{ item.url }}">{{ item.product.title }}</a>
+                          </h3>
+                          
+                          {% unless item.product.has_only_default_variant %}
+                            <div class="cart-product__variant">
+                              {{ item.variant.title }}
+                            </div>
+                          {% endunless %}
+                          
+                          {% if item.selling_plan_allocation %}
+                            <div class="cart-product__selling-plan">
+                              {{ item.selling_plan_allocation.selling_plan.name }}
+                            </div>
+                          {% endif %}
+                          
+                          {% if item.properties and item.properties.size > 0 %}
+                            <div class="cart-product__properties">
+                              <ul>
+                                {% for property in item.properties %}
+                                  {% unless property.first contains '_' %}
+                                    <li>
+                                      {{ property.first }}: 
+                                      {% if property.last contains '/uploads/' %}
+                                        <a href="{{ property.last }}">{{ property.last | split: '/' | last }}</a>
+                                      {% else %}
+                                        {{ property.last }}
+                                      {% endif %}
+                                    </li>
+                                  {% endunless %}
+                                {% endfor %}
+                              </ul>
+                            </div>
+                          {% endif %}
+                          
+                          <!-- زر الإزالة للموبايل فقط -->
+                          <div class="cart-product__remove cart-product__remove--mobile">
+                            <button type="button" class="cart-product__remove-button"
+                              data-cart-remove
+                              data-key="{{ item.key }}"
+                              aria-label="{{ 'cart.general.remove' | t }}">
+                              {{ 'cart.general.remove' | t }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    
+                    <!-- السعر -->
+                    <td class="cart-table__col cart-table__col--price">
+                      <div class="cart-price">
+                        {% if item.original_price != item.final_price %}
+                          <s class="cart-price__original">{{ item.original_price | money }}</s>
+                          <span class="cart-price__final">{{ item.final_price | money }}</span>
+                        {% else %}
+                          <span class="cart-price__regular">{{ item.original_price | money }}</span>
+                        {% endif %}
+                        
+                        {% if item.line_level_discount_allocations.size > 0 %}
+                          <ul class="cart-price__discounts">
+                            {% for discount_allocation in item.line_level_discount_allocations %}
+                              <li class="cart-price__discount">
+                                <span class="cart-price__discount-icon"><span class="icon-tag" aria-hidden="true"></span></span>
+                                <span class="cart-price__discount-name">{{ discount_allocation.discount_application.title }}</span>
+                                <span class="cart-price__discount-amount">{{ discount_allocation.amount | money }}</span>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                        {% endif %}
+                      </div>
+                    </td>
+                    
+                    <!-- الكمية -->
+                    <td class="cart-table__col cart-table__col--quantity">
+                      <div class="quantity-input">
+                        <button type="button" class="quantity-input__button quantity-input__button--minus" 
+                          data-cart-change="minus" 
+                          data-key="{{ item.key }}"
+                          aria-label="{{ 'products.product.decrease_quantity' | t }}">
+                          <span class="icon-minus" aria-hidden="true"></span>
+                        </button>
+                        <input type="number" 
+                          name="updates[]" 
+                          id="updates_{{ item.key }}" 
+                          value="{{ item.quantity }}" 
+                          min="0" 
+                          aria-label="{{ 'cart.items.quantity' | t }}"
+                          class="quantity-input__field"
+                          data-quantity-input
+                          data-key="{{ item.key }}">
+                        <button type="button" class="quantity-input__button quantity-input__button--plus" 
+                          data-cart-change="plus" 
+                          data-key="{{ item.key }}"
+                          aria-label="{{ 'products.product.increase_quantity' | t }}">
+                          <span class="icon-plus" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </td>
+                    
+                    <!-- المجموع -->
+                    <td class="cart-table__col cart-table__col--total">
+                      <div class="cart-total">
+                        <span class="cart-total__price">{{ item.final_line_price | money }}</span>
+                        
+                        <!-- زر الإزالة للديسكتوب فقط -->
+                        <div class="cart-product__remove cart-product__remove--desktop">
+                          <button type="button" class="cart-product__remove-button"
+                            data-cart-remove
+                            data-key="{{ item.key }}"
+                            aria-label="{{ 'cart.general.remove' | t }}">
+                            <span class="icon-trash" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- ملخص السلة -->
+          <div class="cart__summary">
+            <div class="cart-summary">
+              <!-- ملخص المجموع -->
+              <div class="cart-summary__section">
+                <div class="cart-summary__subtotal">
+                  <span class="cart-summary__subtotal-label">{{ 'cart.general.subtotal' | t }}</span>
+                  <span class="cart-summary__subtotal-price">{{ cart.total_price | money }}</span>
+                </div>
+                
+                {% if cart.cart_level_discount_applications.size > 0 %}
+                  <ul class="cart-summary__discounts">
+                    {% for discount_application in cart.cart_level_discount_applications %}
+                      <li class="cart-summary__discount">
+                        <span class="cart-summary__discount-icon"><span class="icon-tag" aria-hidden="true"></span></span>
+                        <span class="cart-summary__discount-name">{{ discount_application.title }}</span>
+                        <span class="cart-summary__discount-amount">-{{ discount_application.total_allocated_amount | money }}</span>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+                
+                <p class="cart-summary__shipping-note">{{ 'cart.general.shipping_calculated_at_checkout' | t }}</p>
+              </div>
+              
+              <!-- رمز الخصم -->
+              {% if section.settings.show_discount_code %}
+                <div class="cart-summary__section">
+                  {% if cart.discount_applications.size > 0 %}
+                    <div class="cart-summary__discount-applied">
+                      <span class="cart-summary__discount-label">{{ 'cart.general.discount' | t }}:</span>
+                      <span class="cart-summary__discount-title">{{ cart.discount_applications.first.title }}</span>
+                      <button type="button" class="cart-summary__discount-remove" data-cart-discount-remove>
+                        <span class="icon-close" aria-hidden="true"></span>
+                        <span class="visually-hidden">{{ 'cart.general.remove_discount' | t }}</span>
+                      </button>
+                    </div>
+                  {% else %}
+                    <div class="cart-summary__discount-form" data-discount-form>
+                      <div class="cart-summary__discount-field">
+                        <input type="text" 
+                          name="discount" 
+                          id="CartDiscount" 
+                          class="cart-summary__discount-input" 
+                          value="{{ cart.discount_code }}" 
+                          placeholder="{{ 'cart.general.discount_code_placeholder' | t }}">
+                        <button type="submit" 
+                          name="apply" 
+                          class="cart-summary__discount-button"
+                          data-discount-apply>
+                          {{ 'cart.general.apply' | t }}
+                        </button>
+                      </div>
+                      <div class="cart-summary__discount-error" data-discount-error></div>
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+              
+              <!-- ملاحظات الطلب -->
+              {% if section.settings.show_note %}
+                <div class="cart-summary__section">
+                  <div class="cart-summary__note">
+                    <label for="CartNote" class="cart-summary__note-label">{{ 'cart.general.note' | t }}</label>
+                    <textarea id="CartNote" name="note" class="cart-summary__note-input">{{ cart.note }}</textarea>
+                  </div>
+                </div>
+              {% endif %}
+              
+              <!-- أزرار السلة -->
+              <div class="cart-summary__section">
+                <div class="cart-summary__buttons">
+                  <button type="submit" name="update" class="cart-summary__update-button">
+                    {{ 'cart.general.update' | t }}
+                  </button>
+                  <button type="submit" name="checkout" class="cart-summary__checkout-button btn btn--primary">
+                    {{ 'cart.general.checkout' | t }}
+                  </button>
+                </div>
+                
+                <div class="cart-summary__continue">
+                  <a href="/collections/all" class="cart-summary__continue-link">
+                    <span class="icon-chevron-left" aria-hidden="true"></span>
+                    {{ 'cart.general.continue_shopping' | t }}
+                  </a>
+                </div>
+                
+                <!-- وسائل الدفع -->
+                {% if section.settings.show_payment_icons %}
+                  <div class="cart-summary__payments">
+                    <span class="visually-hidden">{{ 'checkout.payment_methods' | t }}</span>
+                    <ul class="payment-icons">
+                      {%- for type in shop.enabled_payment_types -%}
+                        <li class="payment-icons__item">
+                          {{ type | payment_type_svg_tag: class: 'payment-icons__icon' }}
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    {% else %}
+      <div class="cart-empty">
+        <div class="cart-empty__inner">
+          <div class="cart-empty__content">
+            <h2 class="cart-empty__title">{{ 'cart.general.empty' | t }}</h2>
+            <div class="cart-empty__text">
+              {{ 'cart.general.empty_html' | t }}
+            </div>
+            <a href="/collections/all" class="btn btn--primary cart-empty__button">{{ 'cart.general.continue_shopping' | t }}</a>
+          </div>
+          <div class="cart-empty__image">
+            <img src="{{ 'empty-cart.svg' | asset_url }}" alt="{{ 'cart.general.empty' | t }}" width="300" height="300">
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    
+    <!-- منتجات موصى بها -->
+    {% if section.settings.show_recommendations and cart.item_count > 0 %}
+      <div class="cart-recommendations">
+        <h2 class="cart-recommendations__title">{{ section.settings.recommendations_title }}</h2>
+        <div class="cart-recommendations__slider" data-cart-recommendations-slider>
+          {% for product in recommendations.products limit: 4 %}
+            <div class="cart-recommendations__slide">
+              {% render 'product-card', 
+                product: product, 
+                show_vendor: section.settings.show_vendor, 
+                show_rating: section.settings.show_rating
+              %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة سلايدر المنتجات الموصى بها
+    var recommendationsSlider = document.querySelector('[data-cart-recommendations-slider]');
+    if (recommendationsSlider && typeof Flickity !== 'undefined') {
+      new Flickity(recommendationsSlider, {
+        cellAlign: 'left',
+        contain: true,
+        pageDots: false,
+        prevNextButtons: true,
+        wrapAround: false,
+        adaptiveHeight: true,
+        groupCells: true
+      });
+    }
+    
+    // توصيات المنتجات
+    var cartRecommendations = document.querySelector('.cart-recommendations');
+    if (cartRecommendations) {
+      var productId = '';
+      var cartItems = document.querySelectorAll('[data-cart-item]');
+      if (cartItems.length > 0) {
+        var firstItem = cartItems[0];
+        var itemUrl = firstItem.getAttribute('data-cart-item-url');
+        if (itemUrl) {
+          var match = itemUrl.match(/\/products\/[^\/]+\/([0-9]+)/);
+          if (match && match[1]) {
+            productId = match[1];
+          }
+        }
+      }
+      
+      if (productId) {
+        fetch('/recommendations/products.json?product_id=' + productId + '&limit=4')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(data) {
+            if (data.products && data.products.length > 0) {
+              // هنا يمكن تعبئة المنتجات الموصى بها
+            } else {
+              cartRecommendations.style.display = 'none';
+            }
+          })
+          .catch(function(error) {
+            console.error('Error loading recommendations:', error);
+            cartRecommendations.style.display = 'none';
+          });
+      } else {
+        cartRecommendations.style.display = 'none';
+      }
+    }
+  });
+</script>
+
+<style>
+  .cart-template {
+    padding: 60px 0;
+  }
+  
+  .cart-header {
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .cart-header__title {
+    margin: 0;
+    font-size: 32px;
+  }
+  
+  .cart__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    
+    @media (min-width: 992px) {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+  
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .cart-table__header {
+    display: none;
+    
+    @media (min-width: 768px) {
+      display: table-header-group;
+    }
+  }
+  
+  .cart-table__header-col {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-weight: 500;
+    
+    &--price,
+    &--quantity,
+    &--total {
+      text-align: center;
+    }
+  }
+  
+  .cart-table__row {
+    display: block;
+    position: relative;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    
+    @media (min-width: 768px) {
+      display: table-row;
+      border: none;
+      border-radius: 0;
+      margin-bottom: 0;
+    }
+  }
+  
+  .cart-table__col {
+    display: block;
+    padding: 15px;
+    
+    @media (min-width: 768px) {
+      display: table-cell;
+      border-bottom: 1px solid #ddd;
+      vertical-align: middle;
+    }
+    
+    &--price,
+    &--quantity,
+    &--total {
+      @media (min-width: 768px) {
+        text-align: center;
+      }
+    }
+  }
+  
+  .cart-product {
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .cart-product__image {
+    width: 80px;
+    margin-right: 15px;
+    flex-shrink: 0;
+    
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    
+    .placeholder-svg {
+      width: 100%;
+      height: 80px;
+      border-radius: 4px;
+    }
+  }
+  
+  .cart-product__content {
+    flex: 1;
+  }
+  
+  .cart-product__title {
+    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    
+    a {
+      color: inherit;
+      
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+  
+  .cart-product__variant {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .cart-product__selling-plan {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .cart-product__properties {
+    margin-bottom: 10px;
+    font-size: 14px;
+    
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    li {
+      margin-bottom: 3px;
+    }
+  }
+  
+  .cart-product__remove {
+    &--desktop {
+      display: none;
+      
+      @media (min-width: 768px) {
+        display: block;
+        margin-top: 10px;
+      }
+    }
+    
+    &--mobile {
+      display: block;
+      margin-top: 10px;
+      
+      @media (min-width: 768px) {
+        display: none;
+      }
+    }
+  }
+  
+  .cart-product__remove-button {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 14px;
+    color: #777;
+    text-decoration: underline;
+    cursor: pointer;
+    
+    &:hover {
+      color: #333;
+    }
+    
+    .icon-trash {
+      font-size: 16px;
+    }
+  }
+  
+  .cart-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    @media (min-width: 768px) {
+      align-items: center;
+    }
+    
+    &::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #777;
+      
+      @media (min-width: 768px) {
+        display: none;
+      }
+    }
+  }
+  
+  .cart-price__original {
+    font-size: 14px;
+    color: #777;
+    text-decoration: line-through;
+  }
+  
+  .cart-price__final {
+    font-weight: 500;
+    color: #e03131;
+  }
+  
+  .cart-price__regular {
+    font-weight: 500;
+  }
+  
+  .cart-price__discounts {
+    margin: 5px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12px;
+  }
+  
+  .cart-price__discount {
+    display: flex;
+    align-items: center;
+    color: #e03131;
+    
+    .cart-price__discount-icon {
+      margin-right: 5px;
+    }
+    
+    .cart-price__discount-amount {
+      margin-left: 5px;
+    }
+  }
+  
+  .cart-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    @media (min-width: 768px) {
+      align-items: center;
+    }
+    
+    &::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      color: #777;
+      
+      @media (min-width: 768px) {
+        display: none;
+      }
+    }
+  }
+  
+  .cart-total__price {
+    font-weight: 500;
+  }
+  
+  .cart-summary {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .cart-summary__section {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  
+  .cart-summary__subtotal {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .cart-summary__discounts {
+    margin: 0 0 15px;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .cart-summary__discount {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .cart-summary__discount-icon {
+      margin-right: 8px;
+      color: #e03131;
+    }
+    
+    .cart-summary__discount-amount {
+      font-weight: 500;
+      color: #e03131;
+    }
+  }
+  
+  .cart-summary__shipping-note {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .cart-summary__discount-applied {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #f1f8ff;
+    border-radius: 4px;
+    
+    .cart-summary__discount-label {
+      font-weight: 500;
+      margin-right: 8px;
+    }
+    
+    .cart-summary__discount-title {
+      flex: 1;
+    }
+    
+    .cart-summary__discount-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #777;
+      
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+  
+  .cart-summary__discount-form {
+    margin-bottom: 15px;
+  }
+  
+  .cart-summary__discount-field {
+    display: flex;
+  }
+  
+  .cart-summary__discount-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    
+    &:focus {
+      outline: none;
+      border-color: #999;
+    }
+  }
+  
+  .cart-summary__discount-button {
+    padding: 0 15px;
+    border: 1px solid #ddd;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    background-color: #f1f1f1;
+    font-weight: 500;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #ddd;
+    }
+  }
+  
+  .cart-summary__discount-error {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #e03131;
+  }
+  
+  .cart-summary__note {
+    margin-bottom: 15px;
+  }
+  
+  .cart-summary__note-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  
+  .cart-summary__note-input {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    
+    &:focus {
+      outline: none;
+      border-color: #999;
+    }
+  }
+  
+  .cart-summary__buttons {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    
+    @media (min-width: 576px) {
+      flex-direction: row;
+    }
+  }
+  
+  .cart-summary__update-button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    
+    @media (min-width: 576px) {
+      width: auto;
+      margin-bottom: 0;
+      margin-right: 10px;
+    }
+    
+    &:hover {
+      background-color: #f1f1f1;
+    }
+  }
+  
+  .cart-summary__checkout-button {
+    width: 100%;
+    padding: 12px;
+    
+    @media (min-width: 576px) {
+      flex: 1;
+    }
+  }
+  
+  .cart-summary__continue {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .cart-summary__continue-link {
+    display: inline-flex;
+    align-items: center;
+    color: #777;
+    font-size: 14px;
+    
+    &:hover {
+      color: #333;
+      text-decoration: underline;
+    }
+    
+    .icon-chevron-left {
+      margin-right: 8px;
+    }
+  }
+  
+  .cart-summary__payments {
+    text-align: center;
+  }
+  
+  .payment-icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .payment-icons__item {
+    margin: 3px;
+  }
+  
+  .payment-icons__icon {
+    display: block;
+    width: auto;
+    height: 24px;
+  }
+  
+  .cart-empty {
+    text-align: center;
+    padding: 40px 0;
+  }
+  
+  .cart-empty__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      text-align: left;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+  }
+  
+  .cart-empty__content {
+    margin-bottom: 30px;
+    
+    @media (min-width: 768px) {
+      flex: 1;
+      margin-bottom: 0;
+      margin-right: 40px;
+    }
+  }
+  
+  .cart-empty__title {
+    margin-bottom: 15px;
+    font-size: 28px;
+  }
+  
+  .cart-empty__text {
+    margin-bottom: 30px;
+    color: #777;
+    
+    p {
+      margin: 0;
+    }
+  }
+  
+  .cart-empty__button {
+    min-width: 200px;
+  }
+  
+  .cart-empty__image {
+    max-width: 100%;
+    
+    @media (min-width: 768px) {
+      flex: 1;
+    }
+    
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+  
+  .cart-recommendations {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .cart-recommendations__title {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 24px;
+  }
+  
+  .cart-recommendations__slider {
+    margin: 0 -10px;
+  }
+  
+  .cart-recommendations__slide {
+    width: 100%;
+    padding: 0 10px;
+    
+    @media (min-width: 576px) {
+      width: 50%;
+    }
+    
+    @media (min-width: 768px) {
+      width: 33.333%;
+    }
+    
+    @media (min-width: 992px) {
+      width: 25%;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة سلة التسوق",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_discount_code",
+      "label": "إظهار حقل رمز الخصم",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_note",
+      "label": "إظهار حقل الملاحظات",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "إظهار رموز الدفع",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "المنتجات الموصى بها"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recommendations",
+      "label": "إظهار المنتجات الموصى بها",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "recommendations_title",
+      "label": "عنوان المنتجات الموصى بها",
+      "default": "قد يعجبك أيضاً"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "إظهار البائع",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "إظهار التقييم",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

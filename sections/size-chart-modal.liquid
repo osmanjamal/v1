@@ -1,0 +1,629 @@
+<div id="SizeChartModal" class="size-chart-modal" data-section-id="{{ section.id }}" data-section-type="size-chart-modal">
+  <div class="size-chart-modal__overlay"></div>
+  <div class="size-chart-modal__container">
+    <button type="button" class="size-chart-modal__close" aria-label="{{ 'general.accessibility.close' | t }}">
+      <span class="icon-close" aria-hidden="true"></span>
+    </button>
+    
+    <div class="size-chart-modal__content">
+      <div class="size-chart-modal__header">
+        <h2 class="size-chart-modal__title">{{ section.settings.title }}</h2>
+      </div>
+      
+      <div class="size-chart-modal__body">
+        {%- if section.settings.description != blank -%}
+          <div class="size-chart-modal__description rte">
+            {{ section.settings.description }}
+          </div>
+        {%- endif -%}
+        
+        <div class="size-chart-tabs">
+          <div class="size-chart-tabs__header">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'chart_tab' -%}
+                <button type="button" 
+                  class="size-chart-tabs__button{% if forloop.first %} is-active{% endif %}" 
+                  data-tab-id="{{ block.id }}">
+                  {{ block.settings.tab_title }}
+                </button>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+          
+          <div class="size-chart-tabs__content">
+            {%- for block in section.blocks -%}
+              {%- if block.type == 'chart_tab' -%}
+                <div class="size-chart-tabs__panel{% if forloop.first %} is-active{% endif %}" data-tab-panel="{{ block.id }}">
+                  {%- if block.settings.chart_image != blank -%}
+                    <div class="size-chart-tabs__image">
+                      <img src="{{ block.settings.chart_image | img_url: '600x' }}" 
+                          alt="{{ block.settings.tab_title }}" 
+                          width="{{ block.settings.chart_image.width }}" 
+                          height="{{ block.settings.chart_image.height }}"
+                          loading="lazy">
+                    </div>
+                  {%- endif -%}
+                  
+                  {%- if block.settings.chart_description != blank -%}
+                    <div class="size-chart-tabs__description rte">
+                      {{ block.settings.chart_description }}
+                    </div>
+                  {%- endif -%}
+                  
+                  {%- if block.settings.show_table -%}
+                    <div class="size-chart-table-wrapper">
+                      <table class="size-chart-table">
+                        <thead>
+                          <tr>
+                            {%- for i in (1..8) -%}
+                              {%- assign header_key = 'header_' | append: i -%}
+                              {%- assign header_text = block.settings[header_key] -%}
+                              {%- if header_text != blank -%}
+                                <th>{{ header_text }}</th>
+                              {%- endif -%}
+                            {%- endfor -%}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {%- for i in (1..15) -%}
+                            {%- assign row_has_data = false -%}
+                            {%- assign row_values = '' -%}
+                            
+                            {%- for j in (1..8) -%}
+                              {%- assign cell_key = 'row_' | append: i | append: '_col_' | append: j -%}
+                              {%- assign cell_text = block.settings[cell_key] -%}
+                              
+                              {%- if cell_text != blank -%}
+                                {%- assign row_has_data = true -%}
+                                {%- assign row_values = row_values | append: '<td>' | append: cell_text | append: '</td>' -%}
+                              {%- endif -%}
+                            {%- endfor -%}
+                            
+                            {%- if row_has_data -%}
+                              <tr>
+                                {{ row_values }}
+                              </tr>
+                            {%- endif -%}
+                          {%- endfor -%}
+                        </tbody>
+                      </table>
+                    </div>
+                  {%- endif -%}
+                  
+                  {%- if block.settings.additional_info != blank -%}
+                    <div class="size-chart-tabs__additional-info rte">
+                      {{ block.settings.additional_info }}
+                    </div>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var sizeChartModal = document.getElementById('SizeChartModal');
+    var sizeChartClose = sizeChartModal.querySelector('.size-chart-modal__close');
+    var sizeChartOverlay = sizeChartModal.querySelector('.size-chart-modal__overlay');
+    var sizeChartTabs = sizeChartModal.querySelectorAll('.size-chart-tabs__button');
+    var sizeChartPanels = sizeChartModal.querySelectorAll('.size-chart-tabs__panel');
+    
+    // Open the size chart modal
+    function openSizeChart() {
+      sizeChartModal.classList.add('is-active');
+      document.body.style.overflow = 'hidden';
+      sizeChartClose.focus();
+    }
+    
+    // Close the size chart modal
+    function closeSizeChart() {
+      sizeChartModal.classList.remove('is-active');
+      document.body.style.overflow = '';
+    }
+    
+    // Switch between tabs
+    function switchTab(tabId) {
+      // Update tab buttons
+      sizeChartTabs.forEach(function(tab) {
+        tab.classList.toggle('is-active', tab.getAttribute('data-tab-id') === tabId);
+      });
+      
+      // Update tab panels
+      sizeChartPanels.forEach(function(panel) {
+        panel.classList.toggle('is-active', panel.getAttribute('data-tab-panel') === tabId);
+      });
+    }
+    
+    // Event listener for size chart buttons
+    document.addEventListener('click', function(evt) {
+      if (evt.target.closest('.js-size-chart-trigger')) {
+        evt.preventDefault();
+        openSizeChart();
+      }
+    });
+    
+    // Event listener for close button
+    if (sizeChartClose) {
+      sizeChartClose.addEventListener('click', closeSizeChart);
+    }
+    
+    // Event listener for overlay
+    if (sizeChartOverlay) {
+      sizeChartOverlay.addEventListener('click', closeSizeChart);
+    }
+    
+    // Event listener for escape key
+    document.addEventListener('keydown', function(evt) {
+      if (evt.key === 'Escape' && sizeChartModal.classList.contains('is-active')) {
+        closeSizeChart();
+      }
+    });
+    
+    // Event listeners for tabs
+    sizeChartTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var tabId = this.getAttribute('data-tab-id');
+        switchTab(tabId);
+      });
+    });
+  });
+</script>
+
+<style>
+  .size-chart-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .size-chart-modal.is-active {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .size-chart-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .size-chart-modal__container {
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    margin: 5vh auto;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  
+  .size-chart-modal__close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+      color: {{ section.settings.accent_color }};
+    }
+  }
+  
+  .size-chart-modal__content {
+    padding: 30px;
+    
+    @media (max-width: 767px) {
+      padding: 20px;
+    }
+  }
+  
+  .size-chart-modal__header {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .size-chart-modal__title {
+    margin: 0;
+    font-size: 24px;
+    
+    @media (min-width: 768px) {
+      font-size: 28px;
+    }
+  }
+  
+  .size-chart-modal__description {
+    margin-bottom: 30px;
+    text-align: center;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .size-chart-tabs__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .size-chart-tabs__button {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    color: #777;
+    
+    &:hover {
+      color: {{ section.settings.accent_color }};
+    }
+    
+    &.is-active {
+      color: {{ section.settings.accent_color }};
+      border-bottom-color: {{ section.settings.accent_color }};
+    }
+  }
+  
+  .size-chart-tabs__panel {
+    display: none;
+    
+    &.is-active {
+      display: block;
+    }
+  }
+  
+  .size-chart-tabs__image {
+    margin-bottom: 20px;
+    text-align: center;
+    
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+  
+  .size-chart-tabs__description {
+    margin-bottom: 20px;
+  }
+  
+  .size-chart-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 20px;
+  }
+  
+  .size-chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+    
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+      font-weight: 700;
+    }
+    
+    tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    
+    tbody tr:hover {
+      background-color: #f1f1f1;
+    }
+  }
+  
+  .size-chart-tabs__additional-info {
+    font-size: 14px;
+    color: #777;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "جدول المقاسات",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "العنوان",
+      "default": "جدول المقاسات"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "الوصف",
+      "default": "<p>استخدم الجدول أدناه للعثور على المقاس المناسب لك. إذا كان مقاسك بين مقاسين، فننصح باختيار المقاس الأكبر.</p>"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "لون التمييز",
+      "default": "#339af0"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "chart_tab",
+      "name": "علامة تبويب",
+      "settings": [
+        {
+          "type": "text",
+          "id": "tab_title",
+          "label": "عنوان التبويب",
+          "default": "أحذية رجالي"
+        },
+        {
+          "type": "image_picker",
+          "id": "chart_image",
+          "label": "صورة الجدول (اختياري)"
+        },
+        {
+          "type": "richtext",
+          "id": "chart_description",
+          "label": "وصف الجدول (اختياري)"
+        },
+        {
+          "type": "header",
+          "content": "جدول المقاسات"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_table",
+          "label": "إظهار الجدول",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "header_1",
+          "label": "عنوان العمود 1",
+          "default": "US"
+        },
+        {
+          "type": "text",
+          "id": "header_2",
+          "label": "عنوان العمود 2",
+          "default": "UK"
+        },
+        {
+          "type": "text",
+          "id": "header_3",
+          "label": "عنوان العمود 3",
+          "default": "EU"
+        },
+        {
+          "type": "text",
+          "id": "header_4",
+          "label": "عنوان العمود 4",
+          "default": "CM"
+        },
+        {
+          "type": "text",
+          "id": "header_5",
+          "label": "عنوان العمود 5"
+        },
+        {
+          "type": "text",
+          "id": "header_6",
+          "label": "عنوان العمود 6"
+        },
+        {
+          "type": "text",
+          "id": "header_7",
+          "label": "عنوان العمود 7"
+        },
+        {
+          "type": "text",
+          "id": "header_8",
+          "label": "عنوان العمود 8"
+        },
+        {
+          "type": "header",
+          "content": "الصف 1"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_1",
+          "label": "الصف 1 العمود 1",
+          "default": "7"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_2",
+          "label": "الصف 1 العمود 2",
+          "default": "6"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_3",
+          "label": "الصف 1 العمود 3",
+          "default": "40"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_4",
+          "label": "الصف 1 العمود 4",
+          "default": "25"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_5",
+          "label": "الصف 1 العمود 5"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_6",
+          "label": "الصف 1 العمود 6"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_7",
+          "label": "الصف 1 العمود 7"
+        },
+        {
+          "type": "text",
+          "id": "row_1_col_8",
+          "label": "الصف 1 العمود 8"
+        },
+        {
+          "type": "header",
+          "content": "الصف 2"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_1",
+          "label": "الصف 2 العمود 1",
+          "default": "7.5"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_2",
+          "label": "الصف 2 العمود 2",
+          "default": "6.5"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_3",
+          "label": "الصف 2 العمود 3",
+          "default": "40.5"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_4",
+          "label": "الصف 2 العمود 4",
+          "default": "25.5"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_5",
+          "label": "الصف 2 العمود 5"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_6",
+          "label": "الصف 2 العمود 6"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_7",
+          "label": "الصف 2 العمود 7"
+        },
+        {
+          "type": "text",
+          "id": "row_2_col_8",
+          "label": "الصف 2 العمود 8"
+        },
+        {
+          "type": "header",
+          "content": "الصف 3"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_1",
+          "label": "الصف 3 العمود 1",
+          "default": "8"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_2",
+          "label": "الصف 3 العمود 2",
+          "default": "7"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_3",
+          "label": "الصف 3 العمود 3",
+          "default": "41"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_4",
+          "label": "الصف 3 العمود 4",
+          "default": "26"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_5",
+          "label": "الصف 3 العمود 5"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_6",
+          "label": "الصف 3 العمود 6"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_7",
+          "label": "الصف 3 العمود 7"
+        },
+        {
+          "type": "text",
+          "id": "row_3_col_8",
+          "label": "الصف 3 العمود 8"
+        },
+        {
+          "type": "header",
+          "content": "معلومات إضافية"
+        },
+        {
+          "type": "richtext",
+          "id": "additional_info",
+          "label": "معلومات إضافية",
+          "default": "<p>ملاحظة: قد تختلف المقاسات بين العلامات التجارية المختلفة. هذه القياسات هي إرشادية فقط.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "جدول المقاسات",
+      "blocks": [
+        {
+          "type": "chart_tab",
+          "settings": {
+            "tab_title": "أحذية رجالي"
+          }
+        },
+        {
+          "type": "chart_tab",
+          "settings": {
+            "tab_title": "أحذية نسائي"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

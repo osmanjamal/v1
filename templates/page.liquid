@@ -1,0 +1,114 @@
+<div class="page-template" data-section-id="{{ section.id }}" data-section-type="page">
+  <div class="container">
+    <!-- Breadcrumbs - مسار التصفح -->
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <ol>
+        <li>
+          <a href="/">{{ 'general.breadcrumbs.home' | t }}</a>
+        </li>
+        <li aria-current="page">
+          {{ page.title }}
+        </li>
+      </ol>
+    </nav>
+    
+    <div class="page-content">
+      <!-- رأس الصفحة -->
+      <div class="page-header">
+        <h1 class="page-title">{{ page.title }}</h1>
+      </div>
+      
+      <!-- محتوى الصفحة -->
+      <div class="page-body rte">
+        {{ page.content }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .page-template {
+    padding: 60px 0;
+  }
+  
+  .page-content {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .page-header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .page-title {
+    margin: 0;
+    font-size: 36px;
+    
+    @media (min-width: 768px) {
+      font-size: 42px;
+    }
+  }
+  
+  .page-body {
+    font-size: 16px;
+    line-height: 1.7;
+    
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+    
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      margin: 30px auto;
+      border-radius: 8px;
+    }
+    
+    h2, h3, h4, h5, h6 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      font-size: 28px;
+    }
+    
+    h3 {
+      font-size: 24px;
+    }
+    
+    h4 {
+      font-size: 20px;
+    }
+    
+    p {
+      margin-bottom: 20px;
+    }
+    
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 30px;
+    }
+    
+    li {
+      margin-bottom: 10px;
+    }
+    
+    blockquote {
+      padding: 20px 30px;
+      margin: 30px 0;
+      border-left: 4px solid #eee;
+      background-color: #f9f9f9;
+      font-style: italic;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة",
+  "settings": []
+}
+{% endschema %}

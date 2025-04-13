@@ -1,0 +1,431 @@
+<div class="list-collections-template" data-section-id="{{ section.id }}" data-section-type="list-collections">
+  <div class="container">
+    <!-- رأس الصفحة -->
+    <div class="list-collections-header">
+      <h1 class="list-collections-header__title">{{ 'collections.general.all_collections' | t }}</h1>
+    </div>
+    
+    <!-- قائمة المجموعات -->
+    <div class="list-collections-grid">
+      {% paginate collections by section.settings.collections_per_page %}
+        {% for collection in collections %}
+          {% unless collection.handle == 'all' or collection.handle == 'frontpage' %}
+            <div class="list-collections-grid__item">
+              <div class="collection-card">
+                <a href="{{ collection.url }}" class="collection-card__link">
+                  <div class="collection-card__image-wrapper">
+                    {% if collection.image %}
+                      <div class="collection-card__image">
+                        <img srcset="{{ collection.image | img_url: '480x' }} 480w,
+                                   {{ collection.image | img_url: '720x' }} 720w,
+                                   {{ collection.image | img_url: '900x' }} 900w"
+                             src="{{ collection.image | img_url: '720x' }}"
+                             sizes="(min-width: 992px) 33vw, (min-width: 768px) 50vw, 100vw"
+                             alt="{{ collection.title | escape }}"
+                             loading="lazy"
+                             width="{{ collection.image.width }}"
+                             height="{{ collection.image.height }}">
+                      </div>
+                    {% elsif collection.products.first and collection.products.first.featured_image %}
+                      <div class="collection-card__image">
+                        <img srcset="{{ collection.products.first.featured_image | img_url: '480x' }} 480w,
+                                   {{ collection.products.first.featured_image | img_url: '720x' }} 720w,
+                                   {{ collection.products.first.featured_image | img_url: '900x' }} 900w"
+                             src="{{ collection.products.first.featured_image | img_url: '720x' }}"
+                             sizes="(min-width: 992px) 33vw, (min-width: 768px) 50vw, 100vw"
+                             alt="{{ collection.title | escape }}"
+                             loading="lazy"
+                             width="{{ collection.products.first.featured_image.width }}"
+                             height="{{ collection.products.first.featured_image.height }}">
+                      </div>
+                    {% else %}
+                      <div class="collection-card__image collection-card__image--placeholder">
+                        {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+                      </div>
+                    {% endif %}
+                    
+                    <div class="collection-card__overlay"></div>
+                  </div>
+                  
+                  <div class="collection-card__content">
+                    <h2 class="collection-card__title">{{ collection.title }}</h2>
+                    
+                    {% if section.settings.show_description and collection.description != blank %}
+                      <div class="collection-card__description">
+                        {{ collection.description | strip_html | truncatewords: 12 }}
+                      </div>
+                    {% endif %}
+                    
+                    {% if section.settings.show_product_count %}
+                      <div class="collection-card__product-count">
+                        {{ 'collections.general.product_count' | t: count: collection.products_count }}
+                      </div>
+                    {% endif %}
+                    
+                    <div class="collection-card__view">
+                      <span>{{ 'collections.general.view_collection' | t }}</span>
+                      <span class="icon-arrow-right" aria-hidden="true"></span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          {% endunless %}
+        {% endfor %}
+        
+        <!-- الترقيم -->
+        {% if paginate.pages > 1 %}
+          <div class="list-collections-pagination">
+            {% render 'pagination', paginate: paginate %}
+          </div>
+        {% endif %}
+      {% endpaginate %}
+    </div>
+    
+    <!-- المجموعات المميزة -->
+    {% if section.settings.show_featured_collections and section.settings.featured_collections != blank %}
+      <div class="featured-collections">
+        <h2 class="featured-collections__title">{{ section.settings.featured_collections_title }}</h2>
+        
+        <div class="featured-collections__grid">
+          {% for collection_handle in section.settings.featured_collections %}
+            {% assign collection = collections[collection_handle] %}
+            {% if collection %}
+              <div class="featured-collections__item">
+                <div class="collection-card collection-card--featured">
+                  <a href="{{ collection.url }}" class="collection-card__link">
+                    <div class="collection-card__image-wrapper">
+                      {% if collection.image %}
+                        <div class="collection-card__image">
+                          <img src="{{ collection.image | img_url: '720x' }}"
+                               alt="{{ collection.title | escape }}"
+                               loading="lazy"
+                               width="{{ collection.image.width }}"
+                               height="{{ collection.image.height }}">
+                        </div>
+                      {% elsif collection.products.first and collection.products.first.featured_image %}
+                        <div class="collection-card__image">
+                          <img src="{{ collection.products.first.featured_image | img_url: '720x' }}"
+                               alt="{{ collection.title | escape }}"
+                               loading="lazy"
+                               width="{{ collection.products.first.featured_image.width }}"
+                               height="{{ collection.products.first.featured_image.height }}">
+                        </div>
+                      {% else %}
+                        <div class="collection-card__image collection-card__image--placeholder">
+                          {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'placeholder-svg' }}
+                        </div>
+                      {% endif %}
+                      
+                      <div class="collection-card__overlay"></div>
+                    </div>
+                    
+                    <div class="collection-card__content">
+                      <h3 class="collection-card__title">{{ collection.title }}</h3>
+                      
+                      {% if section.settings.show_description and collection.description != blank %}
+                        <div class="collection-card__description">
+                          {{ collection.description | strip_html | truncatewords: 12 }}
+                        </div>
+                      {% endif %}
+                      
+                      {% if section.settings.show_product_count %}
+                        <div class="collection-card__product-count">
+                          {{ 'collections.general.product_count' | t: count: collection.products_count }}
+                        </div>
+                      {% endif %}
+                      
+                      <div class="collection-card__view">
+                        <span>{{ 'collections.general.view_collection' | t }}</span>
+                        <span class="icon-arrow-right" aria-hidden="true"></span>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .list-collections-template {
+    padding: 60px 0;
+  }
+  
+  .list-collections-header {
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .list-collections-header__title {
+    margin: 0;
+    font-size: 36px;
+    
+    @media (min-width: 768px) {
+      font-size: 42px;
+    }
+  }
+  
+  .list-collections-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+    }
+  }
+  
+  .collection-card {
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      
+      .collection-card__image img {
+        transform: scale(1.05);
+      }
+      
+      .collection-card__view {
+        color: #fff;
+      }
+      
+      .collection-card__view .icon-arrow-right {
+        transform: translateX(3px);
+      }
+    }
+  }
+  
+  .collection-card__link {
+    display: block;
+    color: inherit;
+    height: 100%;
+    
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  
+  .collection-card__image-wrapper {
+    position: relative;
+    padding-bottom: 70%;
+    overflow: hidden;
+  }
+  
+  .collection-card__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f1f1;
+      
+      .placeholder-svg {
+        width: 60%;
+        height: 60%;
+      }
+    }
+  }
+  
+  .collection-card__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.6));
+    z-index: 1;
+  }
+  
+  .collection-card__content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 30px;
+    color: #fff;
+    z-index: 2;
+  }
+  
+  .collection-card__title {
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .collection-card__description {
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.9;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .collection-card__product-count {
+    margin-bottom: 15px;
+    font-size: 14px;
+    opacity: 0.8;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  }
+  
+  .collection-card__view {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.3s ease;
+    
+    .icon-arrow-right {
+      margin-left: 8px;
+      transition: transform 0.3s ease;
+    }
+  }
+  
+  .list-collections-pagination {
+    grid-column: 1 / -1;
+    margin-top: 40px;
+  }
+  
+  .featured-collections {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .featured-collections__title {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 32px;
+  }
+  
+  .featured-collections__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .collection-card--featured {
+    .collection-card__image-wrapper {
+      padding-bottom: 80%;
+    }
+    
+    .collection-card__title {
+      font-size: 28px;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة المجموعات",
+  "settings": [
+    {
+      "type": "header",
+      "content": "عرض المجموعات"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "عدد الأعمدة",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "range",
+      "id": "collections_per_page",
+      "label": "عدد المجموعات في الصفحة",
+      "min": 6,
+      "max": 24,
+      "step": 3,
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "إظهار وصف المجموعة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "إظهار عدد المنتجات",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "المجموعات المميزة"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_featured_collections",
+      "label": "إظهار المجموعات المميزة",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "featured_collections_title",
+      "label": "عنوان المجموعات المميزة",
+      "default": "المجموعات المميزة"
+    },
+    {
+      "type": "collection_list",
+      "id": "featured_collections",
+      "label": "المجموعات المميزة",
+      "limit": 3
+    }
+  ]
+}
+{% endschema %}

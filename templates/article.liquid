@@ -1,0 +1,774 @@
+<div class="article-template" data-section-id="{{ section.id }}" data-section-type="article">
+  <div class="container">
+    <article class="article" itemscope itemtype="http://schema.org/BlogPosting">
+      <!-- Breadcrumbs - مسار التصفح -->
+      <nav class="breadcrumb" aria-label="breadcrumb">
+        <ol>
+          <li>
+            <a href="/">{{ 'general.breadcrumbs.home' | t }}</a>
+          </li>
+          <li>
+            <a href="{{ blog.url }}">{{ blog.title }}</a>
+          </li>
+          <li aria-current="page">
+            {{ article.title }}
+          </li>
+        </ol>
+      </nav>
+      
+      <!-- رأس المقالة -->
+      <div class="article__header">
+        {% if article.image %}
+          <div class="article__image" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+            <img srcset="{{ article.image | img_url: '600x' }} 600w,
+                      {{ article.image | img_url: '800x' }} 800w,
+                      {{ article.image | img_url: '1200x' }} 1200w,
+                      {{ article.image | img_url: '1600x' }} 1600w"
+                src="{{ article.image | img_url: '800x' }}"
+                sizes="(min-width: 992px) 1000px, 100vw"
+                alt="{{ article.image.alt | escape }}"
+                loading="eager"
+                width="{{ article.image.width }}"
+                height="{{ article.image.height }}"
+                itemprop="contentUrl">
+            <meta itemprop="width" content="{{ article.image.width }}">
+            <meta itemprop="height" content="{{ article.image.height }}">
+          </div>
+        {% endif %}
+        
+        <div class="article__meta">
+          {% if section.settings.show_date %}
+            <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}" itemprop="datePublished">
+              {{ article.published_at | date: format: 'date' }}
+            </time>
+          {% endif %}
+          
+          {% if section.settings.show_author %}
+            <span class="article__author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+              {{ 'blog.article.by' | t }} <span itemprop="name">{{ article.author }}</span>
+            </span>
+          {% endif %}
+        </div>
+        
+        <h1 class="article__title" itemprop="headline">{{ article.title }}</h1>
+      </div>
+      
+      <!-- محتوى المقالة -->
+      <div class="article__content rte" itemprop="articleBody">
+        {{ article.content }}
+      </div>
+      
+      <!-- وسوم المقالة -->
+      {% if article.tags.size > 0 and section.settings.show_tags %}
+        <div class="article__tags">
+          <span>{{ 'blog.article.tags' | t }}</span>
+          <ul class="article__tags-list">
+            {% for tag in article.tags %}
+              <li class="article__tag-item">
+                <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="article__tag-link">{{ tag }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+      
+      <!-- أزرار المشاركة -->
+      {% if section.settings.show_share_buttons %}
+        <div class="article__share">
+          <span class="article__share-label">{{ 'blog.article.share' | t }}</span>
+          <div class="social-sharing">
+            <a href="https://www.facebook.com/sharer.php?u={{ shop.url | append: article.url }}" 
+              class="social-sharing__link social-sharing__link--facebook" 
+              target="_blank" 
+              rel="noopener">
+              <span class="icon-facebook" aria-hidden="true"></span>
+              <span class="visually-hidden">{{ 'general.social.share_on_facebook' | t }}</span>
+            </a>
+            <a href="https://twitter.com/intent/tweet?text={{ article.title | url_encode }}&url={{ shop.url | append: article.url | url_encode }}" 
+              class="social-sharing__link social-sharing__link--twitter" 
+              target="_blank" 
+              rel="noopener">
+              <span class="icon-twitter" aria-hidden="true"></span>
+              <span class="visually-hidden">{{ 'general.social.share_on_twitter' | t }}</span>
+            </a>
+            <a href="https://pinterest.com/pin/create/button/?url={{ shop.url | append: article.url | url_encode }}&media={{ article.image | img_url: '1024x' | prepend: 'https:' | url_encode }}&description={{ article.title | url_encode }}" 
+              class="social-sharing__link social-sharing__link--pinterest" 
+              target="_blank" 
+              rel="noopener">
+              <span class="icon-pinterest" aria-hidden="true"></span>
+              <span class="visually-hidden">{{ 'general.social.share_on_pinterest' | t }}</span>
+            </a>
+            <a href="mailto:?subject={{ article.title | url_encode }}&body={{ shop.url | append: article.url | url_encode }}" 
+              class="social-sharing__link social-sharing__link--email">
+              <span class="icon-email" aria-hidden="true"></span>
+              <span class="visually-hidden">{{ 'general.social.share_by_email' | t }}</span>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+      
+      <!-- التنقل بين المقالات -->
+      {% if section.settings.show_pagination %}
+        <div class="article__pagination">
+          {% if blog.next_article %}
+            <a href="{{ blog.next_article }}" class="article__pagination-item article__pagination-item--prev">
+              <span class="icon-chevron-left" aria-hidden="true"></span>
+              <span class="article__pagination-text">{{ 'blog.article.previous_article' | t }}</span>
+            </a>
+          {% endif %}
+          
+          {% if blog.previous_article %}
+            <a href="{{ blog.previous_article }}" class="article__pagination-item article__pagination-item--next">
+              <span class="article__pagination-text">{{ 'blog.article.next_article' | t }}</span>
+              <span class="icon-chevron-right" aria-hidden="true"></span>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </article>
+    
+    <!-- التعليقات -->
+    {% if blog.comments_enabled? and section.settings.show_comments %}
+      <div class="article-comments">
+        <h2 class="article-comments__title">{{ 'blog.comments.title' | t }}</h2>
+        
+        {% if article.comments_count > 0 %}
+          <div class="article-comments__list">
+            {% paginate article.comments by 5 %}
+              {% for comment in article.comments %}
+                <div class="article-comment" id="comment-{{ comment.id }}">
+                  <div class="article-comment__meta">
+                    <span class="article-comment__author">{{ comment.author }}</span>
+                    <time datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">
+                      {{ comment.created_at | date: format: 'date' }}
+                    </time>
+                  </div>
+                  <div class="article-comment__content">
+                    {{ comment.content }}
+                  </div>
+                </div>
+              {% endfor %}
+              
+              {% if paginate.pages > 1 %}
+                <div class="article-comments__pagination">
+                  {% render 'pagination', paginate: paginate %}
+                </div>
+              {% endif %}
+            {% endpaginate %}
+          </div>
+        {% else %}
+          <p class="article-comments__empty">{{ 'blog.comments.no_comments' | t }}</p>
+        {% endif %}
+        
+        {% form 'new_comment', article %}
+          <div class="article-comments__form">
+            <h3 class="article-comments__form-title">{{ 'blog.comments.title' | t }}</h3>
+            
+            {% if form.errors %}
+              <div class="article-comments__form-error">
+                <ul>
+                  {% for field in form.errors %}
+                    <li>{{ field | capitalize }}: {{ form.errors.messages[field] }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+            
+            {% if form.posted_successfully? %}
+              <div class="article-comments__form-success">
+                {% if blog.moderated? %}
+                  {{ 'blog.comments.success_moderated' | t }}
+                {% else %}
+                  {{ 'blog.comments.success' | t }}
+                {% endif %}
+              </div>
+            {% endif %}
+            
+            <div class="article-comments__form-fields">
+              <div class="article-comments__form-field">
+                <label for="CommentAuthor" class="article-comments__form-label">{{ 'blog.comments.name' | t }}</label>
+                <input type="text" 
+                  id="CommentAuthor" 
+                  name="comment[author]" 
+                  class="article-comments__form-input" 
+                  value="{{ form.author }}" 
+                  required>
+              </div>
+              
+              <div class="article-comments__form-field">
+                <label for="CommentEmail" class="article-comments__form-label">{{ 'blog.comments.email' | t }}</label>
+                <input type="email" 
+                  id="CommentEmail" 
+                  name="comment[email]" 
+                  class="article-comments__form-input" 
+                  value="{{ form.email }}" 
+                  required>
+              </div>
+              
+              <div class="article-comments__form-field article-comments__form-field--full">
+                <label for="CommentBody" class="article-comments__form-label">{{ 'blog.comments.message' | t }}</label>
+                <textarea 
+                  id="CommentBody" 
+                  name="comment[body]" 
+                  class="article-comments__form-textarea" 
+                  required>{{ form.body }}</textarea>
+              </div>
+              
+              <div class="article-comments__form-actions">
+                <button type="submit" class="btn btn--primary article-comments__form-submit">
+                  {{ 'blog.comments.submit' | t }}
+                </button>
+              </div>
+            </div>
+          </div>
+        {% endform %}
+      </div>
+    {% endif %}
+    
+    <!-- مقالات ذات صلة -->
+    {% if section.settings.show_related_posts and blog.articles_count > 1 %}
+      <div class="related-articles">
+        <h2 class="related-articles__title">{{ 'blog.article.related_articles' | t }}</h2>
+        
+        <div class="related-articles__grid">
+          {% assign article_tags = article.tags %}
+          {% assign related_articles_count = 0 %}
+          
+          {% for related_article in blog.articles limit: 6 %}
+            {% if related_article.id != article.id and related_articles_count < 3 %}
+              {% assign show_article = false %}
+              
+              {% for tag in related_article.tags %}
+                {% if article_tags contains tag %}
+                  {% assign show_article = true %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+              
+              {% if show_article or article_tags.size == 0 %}
+                {% assign related_articles_count = related_articles_count | plus: 1 %}
+                
+                <div class="related-articles__item">
+                  <a href="{{ related_article.url }}" class="related-articles__link">
+                    <div class="related-articles__image-wrapper">
+                      {% if related_article.image %}
+                        <div class="related-articles__image">
+                          <img src="{{ related_article.image | img_url: '400x300', crop: 'center' }}" 
+                              alt="{{ related_article.title | escape }}"
+                              width="400"
+                              height="300"
+                              loading="lazy">
+                        </div>
+                      {% else %}
+                        <div class="related-articles__image related-articles__image--placeholder">
+                          {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+                        </div>
+                      {% endif %}
+                    </div>
+                    
+                    <div class="related-articles__content">
+                      <h3 class="related-articles__article-title">{{ related_article.title }}</h3>
+                      <time datetime="{{ related_article.published_at | date: '%Y-%m-%d' }}">
+                        {{ related_article.published_at | date: format: 'date' }}
+                      </time>
+                    </div>
+                  </a>
+                </div>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .article {
+    margin-bottom: 60px;
+  }
+  
+  .article__header {
+    margin-bottom: 40px;
+  }
+  
+  .article__image {
+    margin-bottom: 30px;
+    
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+    }
+  }
+  
+  .article__meta {
+    margin-bottom: 15px;
+    font-size: 14px;
+    color: #777;
+    
+    time {
+      margin-right: 15px;
+    }
+  }
+  
+  .article__title {
+    margin-bottom: 0;
+    font-size: 36px;
+    
+    @media (min-width: 768px) {
+      font-size: 40px;
+    }
+  }
+  
+  .article__content {
+    margin-bottom: 40px;
+    font-size: 16px;
+    line-height: 1.7;
+    
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+    
+    p {
+      margin-bottom: 20px;
+    }
+    
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 30px 0;
+    }
+    
+    h2, h3, h4, h5, h6 {
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+    
+    h2 {
+      font-size: 28px;
+    }
+    
+    h3 {
+      font-size: 24px;
+    }
+    
+    h4 {
+      font-size: 20px;
+    }
+    
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 30px;
+    }
+    
+    li {
+      margin-bottom: 10px;
+    }
+    
+    blockquote {
+      padding: 20px 30px;
+      margin: 30px 0;
+      border-left: 4px solid #eee;
+      background-color: #f9f9f9;
+      font-style: italic;
+    }
+  }
+  
+  .article__tags {
+    margin-bottom: 30px;
+    
+    span {
+      font-weight: 500;
+      margin-right: 10px;
+    }
+  }
+  
+  .article__tags-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .article__tag-item {
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .article__tag-link {
+    display: block;
+    padding: 5px 10px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #555;
+    
+    &:hover {
+      background-color: #eee;
+      color: #333;
+      text-decoration: none;
+    }
+  }
+  
+  .article__share {
+    margin-bottom: 40px;
+    
+    .article__share-label {
+      font-weight: 500;
+      margin-right: 15px;
+    }
+  }
+  
+  .social-sharing {
+    display: inline-flex;
+  }
+  
+  .social-sharing__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: #f1f1f1;
+    color: #555;
+    
+    &:hover {
+      color: #fff;
+      
+      &.social-sharing__link--facebook {
+        background-color: #3b5998;
+      }
+      
+      &.social-sharing__link--twitter {
+        background-color: #1da1f2;
+      }
+      
+      &.social-sharing__link--pinterest {
+        background-color: #bd081c;
+      }
+      
+      &.social-sharing__link--email {
+        background-color: #777;
+      }
+    }
+  }
+  
+  .article__pagination {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .article__pagination-item {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    
+    &--prev {
+      margin-right: auto;
+      
+      .icon-chevron-left {
+        margin-right: 8px;
+      }
+    }
+    
+    &--next {
+      margin-left: auto;
+      
+      .icon-chevron-right {
+        margin-left: 8px;
+      }
+    }
+    
+    &:hover {
+      color: #333;
+      text-decoration: underline;
+    }
+  }
+  
+  .article-comments {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .article-comments__title {
+    margin-bottom: 30px;
+    font-size: 24px;
+  }
+  
+  .article-comments__list {
+    margin-bottom: 40px;
+  }
+  
+  .article-comment {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #eee;
+    
+    &:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+  
+  .article-comment__meta {
+    margin-bottom: 15px;
+    font-size: 14px;
+    
+    .article-comment__author {
+      font-weight: 700;
+      margin-right: 15px;
+    }
+    
+    time {
+      color: #777;
+    }
+  }
+  
+  .article-comments__form {
+    margin-top: 40px;
+  }
+  
+  .article-comments__form-title {
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+  
+  .article-comments__form-error {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    color: #721c24;
+    
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  }
+  
+  .article-comments__form-success {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #d4edda;
+    border-radius: 4px;
+    color: #155724;
+  }
+  
+  .article-comments__form-fields {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -10px;
+  }
+  
+  .article-comments__form-field {
+    width: calc(100% - 20px);
+    margin: 10px;
+    
+    @media (min-width: 576px) {
+      width: calc(50% - 20px);
+    }
+    
+    &--full {
+      width: calc(100% - 20px);
+    }
+  }
+  
+  .article-comments__form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  
+  .article-comments__form-input,
+  .article-comments__form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+    
+    &:focus {
+      border-color: #999;
+      outline: none;
+    }
+  }
+  
+  .article-comments__form-textarea {
+    height: 150px;
+    resize: vertical;
+  }
+  
+  .article-comments__form-actions {
+    width: 100%;
+    margin: 10px;
+    margin-top: 20px;
+  }
+  
+  .article-comments__form-submit {
+    min-width: 150px;
+  }
+  
+  .article-comments__empty {
+    font-style: italic;
+    color: #777;
+  }
+  
+  .related-articles {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .related-articles__title {
+    margin-bottom: 30px;
+    font-size: 24px;
+    text-align: center;
+  }
+  
+  .related-articles__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    
+    @media (min-width: 576px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .related-articles__item {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .related-articles__link {
+    display: block;
+    color: inherit;
+    
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  
+  .related-articles__image-wrapper {
+    position: relative;
+    padding-bottom: 60%;
+    overflow: hidden;
+  }
+  
+  .related-articles__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f1f1;
+      
+      .placeholder-svg {
+        width: 60%;
+        height: 60%;
+      }
+    }
+  }
+  
+  .related-articles__content {
+    padding: 15px;
+  }
+  
+  .related-articles__article-title {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+  
+  .related-articles__item:hover .related-articles__image img {
+    transform: scale(1.05);
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة المقالة",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "إظهار اسم الكاتب",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "إظهار تاريخ النشر",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "إظهار الوسوم",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_share_buttons",
+      "label": "إظهار أزرار المشاركة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination",
+      "label": "إظهار روابط المقالات السابقة/التالية",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "إظهار التعليقات",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_related_posts",
+      "label": "إظهار المقالات ذات الصلة",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

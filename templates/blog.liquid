@@ -1,0 +1,835 @@
+<div class="blog-template" data-section-id="{{ section.id }}" data-section-type="blog">
+  <div class="container">
+    <!-- Breadcrumbs - مسار التصفح -->
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <ol>
+        <li>
+          <a href="/">{{ 'general.breadcrumbs.home' | t }}</a>
+        </li>
+        <li aria-current="page">
+          {{ blog.title }}
+        </li>
+      </ol>
+    </nav>
+    
+    <!-- رأس المدونة -->
+    <div class="blog-header">
+      <div class="blog-header__inner">
+        <h1 class="blog-header__title">{{ blog.title }}</h1>
+        
+        {% if section.settings.show_blog_description and blog.metafields.description.content != blank %}
+          <div class="blog-header__description">
+            {{ blog.metafields.description.content }}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    
+    <div class="blog-layout">
+      <!-- الشريط الجانبي -->
+      {% if section.settings.show_sidebar %}
+        <div class="blog-sidebar">
+          <!-- البحث -->
+          {% if section.settings.show_search %}
+            <div class="blog-sidebar__section blog-sidebar__search">
+              <form action="/search" method="get" class="blog-search-form" role="search">
+                <input type="hidden" name="type" value="article">
+                <input type="hidden" name="options[prefix]" value="last">
+                
+                <div class="blog-search-form__field-wrapper">
+                  <input type="search" 
+                    id="BlogSearchInput" 
+                    name="q" 
+                    class="blog-search-form__input" 
+                    value="{{ search.terms | escape }}" 
+                    placeholder="{{ 'general.search.placeholder' | t }}" 
+                    aria-label="{{ 'general.search.placeholder' | t }}">
+                  <button type="submit" class="blog-search-form__submit">
+                    <span class="icon-search" aria-hidden="true"></span>
+                    <span class="visually-hidden">{{ 'general.search.submit' | t }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          {% endif %}
+          
+          <!-- التصنيفات -->
+          {% if section.settings.show_categories and linklists[section.settings.blog_categories_menu] != blank %}
+            <div class="blog-sidebar__section blog-sidebar__categories">
+              <h3 class="blog-sidebar__title">{{ 'blog.general.categories' | t }}</h3>
+              <ul class="blog-sidebar__categories-list">
+                {% for link in linklists[section.settings.blog_categories_menu].links %}
+                  <li class="blog-sidebar__categories-item{% if link.active %} is-active{% endif %}">
+                    <a href="{{ link.url }}" class="blog-sidebar__categories-link">{{ link.title }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          
+          <!-- أحدث المقالات -->
+          {% if section.settings.show_recent_posts %}
+            <div class="blog-sidebar__section blog-sidebar__recent">
+              <h3 class="blog-sidebar__title">{{ section.settings.recent_posts_title }}</h3>
+              <ul class="blog-sidebar__recent-list">
+                {% for article in blog.articles limit: section.settings.recent_posts_count %}
+                  <li class="blog-sidebar__recent-item">
+                    <a href="{{ article.url }}" class="blog-sidebar__recent-link">
+                      {% if article.image %}
+                        <div class="blog-sidebar__recent-image">
+                          <img src="{{ article.image | img_url: '100x100', crop: 'center' }}" 
+                              alt="{{ article.title | escape }}"
+                              width="100"
+                              height="100"
+                              loading="lazy">
+                        </div>
+                      {% endif %}
+                      <div class="blog-sidebar__recent-content">
+                        <h4 class="blog-sidebar__recent-title">{{ article.title }}</h4>
+                        <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                          {{ article.published_at | date: format: 'date' }}
+                        </time>
+                      </div>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          
+          <!-- التاجات (الكلمات المفتاحية) -->
+          {% if section.settings.show_tags and blog.all_tags.size > 0 %}
+            <div class="blog-sidebar__section blog-sidebar__tags">
+              <h3 class="blog-sidebar__title">{{ 'blog.general.tags' | t }}</h3>
+              <ul class="blog-sidebar__tags-list">
+                {% for tag in blog.all_tags %}
+                  <li class="blog-sidebar__tags-item">
+                    <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="blog-sidebar__tags-link{% if current_tags contains tag %} is-active{% endif %}">
+                      {{ tag }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          
+          <!-- CTA (دعوة للإجراء) -->
+          {% if section.settings.show_cta %}
+            <div class="blog-sidebar__section blog-sidebar__cta">
+              <div class="blog-sidebar__cta-content">
+                <h3 class="blog-sidebar__cta-title">{{ section.settings.cta_title }}</h3>
+                <p class="blog-sidebar__cta-text">{{ section.settings.cta_text }}</p>
+                <a href="{{ section.settings.cta_link }}" class="btn btn--primary blog-sidebar__cta-button">
+                  {{ section.settings.cta_button_text }}
+                </a>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+      
+      <!-- قائمة المقالات -->
+      <div class="blog-main">
+        {% paginate blog.articles by section.settings.articles_per_page %}
+          {% if current_tags %}
+            <div class="blog-tag-header">
+              <h2 class="blog-tag-header__title">{{ 'blog.general.tagged' | t: tags: current_tags | join: ', ' }}</h2>
+              <a href="{{ blog.url }}" class="blog-tag-header__clear">{{ 'blog.general.view_all' | t }}</a>
+            </div>
+          {% endif %}
+          
+          {% if blog.articles_count == 0 %}
+            <div class="blog-empty">
+              <p>{{ 'blog.general.no_articles' | t }}</p>
+            </div>
+          {% else %}
+            <div class="blog-grid">
+              {% for article in blog.articles %}
+                <div class="blog-grid__item">
+                  <article class="blog-card">
+                    <a href="{{ article.url }}" class="blog-card__link">
+                      <div class="blog-card__image-wrapper">
+                        {% if article.image %}
+                          <div class="blog-card__image">
+                            <img srcset="{{ article.image | img_url: '400x' }} 400w,
+                                        {{ article.image | img_url: '600x' }} 600w,
+                                        {{ article.image | img_url: '800x' }} 800w"
+                                src="{{ article.image | img_url: '600x' }}"
+                                sizes="(min-width: 768px) 50vw, 100vw"
+                                alt="{{ article.title | escape }}"
+                                loading="lazy"
+                                width="{{ article.image.width }}"
+                                height="{{ article.image.height }}">
+                          </div>
+                        {% else %}
+                          <div class="blog-card__image blog-card__image--placeholder">
+                            {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+                          </div>
+                        {% endif %}
+                      </div>
+                      
+                      <div class="blog-card__content">
+                        <div class="blog-card__meta">
+                          {% if section.settings.show_date %}
+                            <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                              {{ article.published_at | date: format: 'date' }}
+                            </time>
+                          {% endif %}
+                          
+                          {% if section.settings.show_author %}
+                            <span class="blog-card__author">
+                              {{ 'blog.article.by' | t }} {{ article.author }}
+                            </span>
+                          {% endif %}
+                        </div>
+                        
+                        <h2 class="blog-card__title">{{ article.title }}</h2>
+                        
+                        {% if section.settings.show_excerpt %}
+                          <div class="blog-card__excerpt">
+                            {% if article.excerpt != blank %}
+                              {{ article.excerpt }}
+                            {% else %}
+                              {{ article.content | strip_html | truncatewords: 30 }}
+                            {% endif %}
+                          </div>
+                        {% endif %}
+                        
+                        <div class="blog-card__read-more">
+                          <span>{{ 'blog.article.read_more' | t }}</span>
+                          <span class="icon-arrow-right" aria-hidden="true"></span>
+                        </div>
+                      </div>
+                    </a>
+                    
+                    {% if section.settings.show_tags and article.tags.size > 0 %}
+                      <div class="blog-card__tags">
+                        <ul class="blog-card__tags-list">
+                          {% for tag in article.tags %}
+                            <li class="blog-card__tag-item">
+                              <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="blog-card__tag-link">{{ tag }}</a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                    {% endif %}
+                  </article>
+                </div>
+              {% endfor %}
+            </div>
+            
+            {% if paginate.pages > 1 %}
+              <div class="blog-pagination">
+                {% render 'pagination', paginate: paginate %}
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endpaginate %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .blog-template {
+    padding: 60px 0;
+  }
+  
+  .blog-header {
+    margin-bottom: 40px;
+  }
+  
+  .blog-header__inner {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .blog-header__title {
+    margin-bottom: 15px;
+    font-size: 36px;
+    
+    @media (min-width: 768px) {
+      font-size: 42px;
+    }
+  }
+  
+  .blog-header__description {
+    color: #777;
+    font-size: 16px;
+    
+    @media (min-width: 768px) {
+      font-size: 18px;
+    }
+  }
+  
+  .blog-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    
+    @media (min-width: 992px) {
+      grid-template-columns: {% if section.settings.sidebar_position == 'left' %}280px 1fr{% else %}1fr 280px{% endif %};
+    }
+  }
+  
+  .blog-sidebar {
+    @media (min-width: 992px) {
+      order: {% if section.settings.sidebar_position == 'left' %}1{% else %}2{% endif %};
+    }
+  }
+  
+  .blog-main {
+    @media (min-width: 992px) {
+      order: {% if section.settings.sidebar_position == 'left' %}2{% else %}1{% endif %};
+    }
+  }
+  
+  .blog-sidebar__section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .blog-sidebar__title {
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 700;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .blog-search-form__field-wrapper {
+    position: relative;
+  }
+  
+  .blog-search-form__input {
+    width: 100%;
+    padding: 10px 40px 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    
+    &:focus {
+      border-color: #999;
+      outline: none;
+    }
+  }
+  
+  .blog-search-form__submit {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 40px;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    color: #777;
+    
+    &:hover {
+      color: #333;
+    }
+  }
+  
+  .blog-sidebar__categories-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .blog-sidebar__categories-item {
+    margin-bottom: 10px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    &.is-active .blog-sidebar__categories-link {
+      color: #333;
+      font-weight: 700;
+    }
+  }
+  
+  .blog-sidebar__categories-link {
+    display: block;
+    padding: 5px 0;
+    color: #777;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      color: #333;
+      padding-left: 5px;
+    }
+  }
+  
+  .blog-sidebar__recent-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .blog-sidebar__recent-item {
+    margin-bottom: 15px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .blog-sidebar__recent-link {
+    display: flex;
+    color: inherit;
+    
+    &:hover {
+      text-decoration: none;
+      
+      .blog-sidebar__recent-title {
+        color: #333;
+      }
+    }
+  }
+  
+  .blog-sidebar__recent-image {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    flex-shrink: 0;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+  }
+  
+  .blog-sidebar__recent-content {
+    flex: 1;
+  }
+  
+  .blog-sidebar__recent-title {
+    margin: 0 0 5px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: all 0.2s ease;
+  }
+  
+  .blog-sidebar__recent-item time {
+    font-size: 12px;
+    color: #777;
+  }
+  
+  .blog-sidebar__tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: -5px;
+  }
+  
+  .blog-sidebar__tags-item {
+    margin: 5px;
+  }
+  
+  .blog-sidebar__tags-link {
+    display: block;
+    padding: 5px 10px;
+    background-color: #eee;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #777;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: #ddd;
+      color: #333;
+      text-decoration: none;
+    }
+    
+    &.is-active {
+      background-color: #333;
+      color: #fff;
+    }
+  }
+  
+  .blog-sidebar__cta {
+    padding: 30px 20px;
+    background-color: #f1f8ff;
+    text-align: center;
+  }
+  
+  .blog-sidebar__cta-title {
+    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  
+  .blog-sidebar__cta-text {
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  
+  .blog-tag-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .blog-tag-header__title {
+    margin: 0;
+    font-size: 20px;
+  }
+  
+  .blog-tag-header__clear {
+    color: #777;
+    
+    &:hover {
+      color: #333;
+      text-decoration: underline;
+    }
+  }
+  
+  .blog-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+    }
+  }
+  
+  .blog-card {
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      
+      .blog-card__read-more {
+        color: #333;
+      }
+    }
+  }
+  
+  .blog-card__link {
+    display: block;
+    color: inherit;
+    
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  
+  .blog-card__image-wrapper {
+    position: relative;
+    padding-bottom: 60%;
+    overflow: hidden;
+  }
+  
+  .blog-card__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f1f1f1;
+      
+      .placeholder-svg {
+        width: 60%;
+        height: 60%;
+      }
+    }
+  }
+  
+  .blog-card:hover .blog-card__image img {
+    transform: scale(1.05);
+  }
+  
+  .blog-card__content {
+    padding: 20px;
+  }
+  
+  .blog-card__meta {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #777;
+    
+    time {
+      margin-right: 15px;
+    }
+  }
+  
+  .blog-card__title {
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    
+    @media (min-width: 768px) {
+      font-size: 20px;
+    }
+  }
+  
+  .blog-card__excerpt {
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #777;
+  }
+  
+  .blog-card__read-more {
+    display: flex;
+    align-items: center;
+    color: #777;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    
+    .icon-arrow-right {
+      margin-left: 8px;
+      transition: transform 0.2s ease;
+    }
+  }
+  
+  .blog-card:hover .blog-card__read-more .icon-arrow-right {
+    transform: translateX(3px);
+  }
+  
+  .blog-card__tags {
+    padding: 0 20px 20px;
+  }
+  
+  .blog-card__tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: -3px;
+  }
+  
+  .blog-card__tag-item {
+    margin: 3px;
+  }
+  
+  .blog-card__tag-link {
+    display: block;
+    padding: 3px 8px;
+    background-color: #f1f1f1;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #777;
+    
+    &:hover {
+      background-color: #ddd;
+      color: #333;
+      text-decoration: none;
+    }
+  }
+  
+  .blog-empty {
+    text-align: center;
+    padding: 40px 0;
+    color: #777;
+  }
+  
+  .blog-pagination {
+    margin-top: 40px;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة المدونة",
+  "settings": [
+    {
+      "type": "header",
+      "content": "الرأس"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_blog_description",
+      "label": "إظهار وصف المدونة",
+      "info": "يستخدم هذا الوصف من حقول Metafields للمدونة",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "قائمة المقالات"
+    },
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "عدد الأعمدة على سطح المكتب",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "عدد المقالات في الصفحة",
+      "min": 3,
+      "max": 24,
+      "step": 3,
+      "default": 9
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "إظهار تاريخ النشر",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "إظهار اسم الكاتب",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "إظهار ملخص المقالة",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "إظهار الوسوم",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "الشريط الجانبي"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sidebar",
+      "label": "إظهار الشريط الجانبي",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "sidebar_position",
+      "label": "موضع الشريط الجانبي",
+      "options": [
+        {
+          "value": "right",
+          "label": "يمين"
+        },
+        {
+          "value": "left",
+          "label": "يسار"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "إظهار حقل البحث",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_categories",
+      "label": "إظهار التصنيفات",
+      "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "blog_categories_menu",
+      "label": "قائمة تصنيفات المدونة",
+      "info": "إذا كان فارغاً، فلن يتم عرض قسم التصنيفات"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recent_posts",
+      "label": "إظهار أحدث المقالات",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "recent_posts_title",
+      "label": "عنوان أحدث المقالات",
+      "default": "أحدث المقالات"
+    },
+    {
+      "type": "range",
+      "id": "recent_posts_count",
+      "label": "عدد أحدث المقالات",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "إظهار دعوة للإجراء",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_title",
+      "label": "عنوان دعوة للإجراء",
+      "default": "اشترك في نشرتنا الإخبارية"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "نص دعوة للإجراء",
+      "default": "احصل على أحدث الأخبار والعروض والمعلومات مباشرة إلى بريدك الإلكتروني"
+    },
+    {
+      "type": "text",
+      "id": "cta_button_text",
+      "label": "نص زر دعوة للإجراء",
+      "default": "اشترك الآن"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "رابط دعوة للإجراء",
+      "default": "/pages/newsletter"
+    }
+  ]
+}
+{% endschema %}

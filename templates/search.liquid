@@ -1,1 +1,548 @@
+<div class="search-template" data-section-id="{{ section.id }}" data-section-type="search">
+  <div class="container">
+    <!-- نموذج البحث -->
+    <div class="search-form-wrapper">
+      <form action="/search" method="get" class="search-form" role="search">
+        <div class="search-form__field-wrapper">
+          <input type="search" 
+            name="q" 
+            id="SearchInput" 
+            class="search-form__input" 
+            value="{{ search.terms | escape }}" 
+            placeholder="{{ 'general.search.placeholder' | t }}" 
+            aria-label="{{ 'general.search.placeholder' | t }}">
+          <button type="submit" class="search-form__submit btn btn--primary">
+            <span class="icon-search" aria-hidden="true"></span>
+            <span class="search-form__submit-text">{{ 'general.search.submit' | t }}</span>
+          </button>
+        </div>
+        
+        <div class="search-form__options">
+          <div class="search-form__type">
+            <div class="radio">
+              <input type="radio" name="type" id="SearchTypeAll" value="product,article,page" {% if search.types contains 'product' and search.types contains 'article' and search.types contains 'page' %}checked{% endif %}>
+              <label for="SearchTypeAll">{{ 'general.search.all' | t }}</label>
+            </div>
+            <div class="radio">
+              <input type="radio" name="type" id="SearchTypeProduct" value="product" {% if search.types contains 'product' and search.types.size == 1 %}checked{% endif %}>
+              <label for="SearchTypeProduct">{{ 'general.search.products' | t }}</label>
+            </div>
+            <div class="radio">
+              <input type="radio" name="type" id="SearchTypeArticle" value="article" {% if search.types contains 'article' and search.types.size == 1 %}checked{% endif %}>
+              <label for="SearchTypeArticle">{{ 'general.search.articles' | t }}</label>
+            </div>
+            <div class="radio">
+              <input type="radio" name="type" id="SearchTypePage" value="page" {% if search.types contains 'page' and search.types.size == 1 %}checked{% endif %}>
+              <label for="SearchTypePage">{{ 'general.search.pages' | t }}</label>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <!-- نتائج البحث -->
+    <div class="search-results">
+      <div class="search-results__header">
+        {%- if search.performed -%}
+          <h1 class="search-results__title">
+            {%- if search.results_count == 0 -%}
+              {{ 'general.search.no_results' | t }} "{{ search.terms | escape }}"
+            {%- else -%}
+              {{ 'general.search.results_for' | t }} "{{ search.terms | escape }}" ({{ search.results_count }} {{ search.results_count | pluralize: 'نتيجة', 'نتائج' }})
+            {%- endif -%}
+          </h1>
+        {%- else -%}
+          <h1 class="search-results__title">{{ 'general.search.search' | t }}</h1>
+        {%- endif -%}
+      </div>
+      
+      {%- if search.performed -%}
+        {%- if search.results_count > 0 -%}
+          <div class="search-results__tabs">
+            <button type="button" class="search-results__tab{% if search.types contains 'product' %} is-active{% endif %}" data-tab="products">
+              {{ 'general.search.products' | t }} ({{ search.results_count | where: 'object_type', 'product' | size }})
+            </button>
+            <button type="button" class="search-results__tab{% if search.types contains 'article' %} is-active{% endif %}" data-tab="articles">
+              {{ 'general.search.articles' | t }} ({{ search.results_count | where: 'object_type', 'article' | size }})
+            </button>
+            <button type="button" class="search-results__tab{% if search.types contains 'page' %} is-active{% endif %}" data-tab="pages">
+              {{ 'general.search.pages' | t }} ({{ search.results_count | where: 'object_type', 'page' | size }})
+            </button>
+          </div>
+          
+          <div class="search-results__content">
+            <!-- نتائج المنتجات -->
+            <div class="search-results__panel{% if search.types contains 'product' %} is-active{% endif %}" data-panel="products">
+              {%- assign product_results = search.results | where: 'object_type', 'product' -%}
+              
+              {%- if product_results.size > 0 -%}
+                <div class="collection-grid">
+                  {%- for product in product_results -%}
+                    <div class="collection-grid__item collection-grid__item--1-{{ section.settings.columns_desktop }}">
+                      {% render 'product-card', 
+                        product: product, 
+                        show_vendor: section.settings.show_vendor, 
+                        show_rating: section.settings.show_rating
+                      %}
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="search-results__empty">
+                  <p>{{ 'general.search.no_products' | t }}</p>
+                </div>
+              {%- endif -%}
+            </div>
+            
+            <!-- نتائج المقالات -->
+            <div class="search-results__panel{% if search.types contains 'article' %} is-active{% endif %}" data-panel="articles">
+              {%- assign article_results = search.results | where: 'object_type', 'article' -%}
+              
+              {%- if article_results.size > 0 -%}
+                <div class="search-articles">
+                  {%- for article in article_results -%}
+                    <div class="search-article">
+                      <a href="{{ article.url }}" class="search-article__link">
+                        {%- if article.image -%}
+                          <div class="search-article__image">
+                            <img src="{{ article.image | img_url: '300x200', crop: 'center' }}" 
+                                alt="{{ article.title | escape }}"
+                                width="300"
+                                height="200"
+                                loading="lazy">
+                          </div>
+                        {%- endif -%}
+                        
+                        <div class="search-article__content">
+                          <h2 class="search-article__title">{{ article.title }}</h2>
+                          
+                          <div class="search-article__meta">
+                            <time datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+                              {{ article.published_at | date: format: 'date' }}
+                            </time>
+                            
+                            <span class="search-article__author">
+                              {{ 'blog.article.by' | t }} {{ article.author }}
+                            </span>
+                          </div>
+                          
+                          <div class="search-article__excerpt">
+                            {% if article.excerpt != blank %}
+                              {{ article.excerpt | strip_html | truncatewords: 30 }}
+                            {% else %}
+                              {{ article.content | strip_html | truncatewords: 30 }}
+                            {% endif %}
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="search-results__empty">
+                  <p>{{ 'general.search.no_articles' | t }}</p>
+                </div>
+              {%- endif -%}
+            </div>
+            
+            <!-- نتائج الصفحات -->
+            <div class="search-results__panel{% if search.types contains 'page' %} is-active{% endif %}" data-panel="pages">
+              {%- assign page_results = search.results | where: 'object_type', 'page' -%}
+              
+              {%- if page_results.size > 0 -%}
+                <div class="search-pages">
+                  {%- for page in page_results -%}
+                    <div class="search-page">
+                      <a href="{{ page.url }}" class="search-page__link">
+                        <h2 class="search-page__title">{{ page.title }}</h2>
+                        <div class="search-page__excerpt">
+                          {{ page.content | strip_html | truncatewords: 30 }}
+                        </div>
+                      </a>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="search-results__empty">
+                  <p>{{ 'general.search.no_pages' | t }}</p>
+                </div>
+              {%- endif -%}
+            </div>
+          </div>
+          
+          <!-- الترقيم -->
+          {%- if paginate.pages > 1 -%}
+            <div class="search-results__pagination">
+              {% render 'pagination', paginate: paginate %}
+            </div>
+          {%- endif -%}
+        {%- else -%}
+          <div class="search-results__empty search-results__empty--no-results">
+            <div class="search-results__empty-content">
+              <h2 class="search-results__empty-title">{{ 'general.search.no_results_title' | t }}</h2>
+              <p class="search-results__empty-text">{{ 'general.search.no_results_text' | t }}</p>
+              <ul class="search-results__empty-suggestions">
+                <li>{{ 'general.search.suggestion_1' | t }}</li>
+                <li>{{ 'general.search.suggestion_2' | t }}</li>
+                <li>{{ 'general.search.suggestion_3' | t }}</li>
+              </ul>
+            </div>
+            <div class="search-results__empty-image">
+              <img src="{{ 'empty-search.svg' | asset_url }}" alt="{{ 'general.search.no_results' | t }}" width="300" height="300">
+            </div>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var searchTabs = document.querySelectorAll('.search-results__tab');
+    var searchPanels = document.querySelectorAll('.search-results__panel');
+    
+    searchTabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var target = this.getAttribute('data-tab');
+        
+        // تحديث حالة التبويبات
+        searchTabs.forEach(function(t) {
+          t.classList.toggle('is-active', t === tab);
+        });
+        
+        // تحديث حالة اللوحات
+        searchPanels.forEach(function(panel) {
+          panel.classList.toggle('is-active', panel.getAttribute('data-panel') === target);
+        });
+      });
+    });
+  });
+</script>
+
+<style>
+  .search-template {
+    padding: 60px 0;
+  }
+  
+  .search-form-wrapper {
+    max-width: 800px;
+    margin: 0 auto 40px;
+  }
+  
+  .search-form__field-wrapper {
+    display: flex;
+  }
+  
+  .search-form__input {
+    flex: 1;
+    height: 50px;
+    padding: 0 20px;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    
+    &:focus {
+      outline: none;
+      border-color: #999;
+    }
+  }
+  
+  .search-form__submit {
+    height: 50px;
+    padding: 0 20px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .search-form__submit-text {
+    display: none;
+    margin-left: 8px;
+    
+    @media (min-width: 576px) {
+      display: inline;
+    }
+  }
+  
+  .search-form__options {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .search-form__type {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .radio {
+    margin: 0 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .radio input[type="radio"] {
+    margin-right: 5px;
+  }
+  
+  .search-results__header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .search-results__title {
+    margin: 0;
+    font-size: 24px;
+    
+    @media (min-width: 768px) {
+      font-size: 32px;
+    }
+  }
+  
+  .search-results__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .search-results__tab {
+    padding: 12px 20px;
+    margin: 0 10px;
+    background: none;
+    border: none;
+    color: #777;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    
+    &:hover {
+      color: #333;
+    }
+    
+    &.is-active {
+      color: #333;
+      border-bottom-color: #333;
+    }
+  }
+  
+  .search-results__panel {
+    display: none;
+    
+    &.is-active {
+      display: block;
+    }
+  }
+  
+  .search-article {
+    margin-bottom: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .search-article__link {
+    display: flex;
+    flex-direction: column;
+    color: inherit;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+    }
+    
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  
+  .search-article__image {
+    width: 100%;
+    height: 200px;
+    
+    @media (min-width: 768px) {
+      width: 300px;
+      flex-shrink: 0;
+    }
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  
+  .search-article__content {
+    padding: 20px;
+    flex: 1;
+  }
+  
+  .search-article__title {
+    margin-bottom: 10px;
+    font-size: 20px;
+  }
+  
+  .search-article__meta {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #777;
+    
+    time {
+      margin-right: 15px;
+    }
+  }
+  
+  .search-article__excerpt {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .search-page {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    
+    &:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+  
+  .search-page__link {
+    display: block;
+    color: inherit;
+    
+    &:hover {
+      text-decoration: none;
+      
+      .search-page__title {
+        color: #333;
+      }
+    }
+  }
+  
+  .search-page__title {
+    margin-bottom: 10px;
+    font-size: 20px;
+    transition: color 0.2s ease;
+  }
+  
+  .search-page__excerpt {
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .search-results__empty {
+    text-align: center;
+    padding: 40px 0;
+    color: #777;
+  }
+  
+  .search-results__empty--no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      justify-content: center;
+      text-align: left;
+    }
+  }
+  
+  .search-results__empty-content {
+    max-width: 600px;
+    margin-bottom: 30px;
+    
+    @media (min-width: 768px) {
+      margin-bottom: 0;
+      margin-right: 40px;
+    }
+  }
+  
+  .search-results__empty-title {
+    margin-bottom: 15px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .search-results__empty-text {
+    margin-bottom: 20px;
+  }
+  
+  .search-results__empty-suggestions {
+    padding-left: 20px;
+    text-align: left;
+    
+    li {
+      margin-bottom: 10px;
+    }
+  }
+  
+  .search-results__empty-image {
+    max-width: 300px;
+    
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+  
+  .search-results__pagination {
+    margin-top: 40px;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "صفحة البحث",
+  "settings": [
+    {
+      "type": "select",
+      "id": "columns_desktop",
+      "label": "عدد الأعمدة للمنتجات",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "إظهار البائع",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "إظهار التقييم",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

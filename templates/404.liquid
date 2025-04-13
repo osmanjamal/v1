@@ -1,0 +1,115 @@
+<div class="page-404">
+  <div class="container">
+    <div class="page-404__inner">
+      <div class="page-404__content">
+        <h1 class="page-404__title">{{ 'general.404.title' | t }}</h1>
+        <div class="page-404__text">
+          <p>{{ 'general.404.subtext' | t }}</p>
+        </div>
+        <a href="/" class="btn btn--primary page-404__button">{{ 'general.404.link' | t }}</a>
+      </div>
+      
+      <div class="page-404__image">
+        <img src="{{ 'error-404.svg' | asset_url }}" alt="{{ 'general.404.title' | t }}" width="400" height="300">
+      </div>
+    </div>
+    
+    <div class="page-404__featured-products">
+      <h2 class="page-404__featured-title">{{ 'homepage.featured_products' | t }}</h2>
+      <div class="collection-grid">
+        {% assign featured_collection = collections.featured-products %}
+        {% if featured_collection == blank %}
+          {% assign featured_collection = collections.frontpage %}
+        {% endif %}
+        
+        {% if featured_collection == blank or featured_collection.products_count == 0 %}
+          {% assign featured_collection = collections.all %}
+        {% endif %}
+        
+        {% for product in featured_collection.products limit: 4 %}
+          <div class="collection-grid__item collection-grid__item--1-4">
+            {% render 'product-card', 
+              product: product, 
+              show_vendor: false, 
+              show_rating: false
+            %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .page-404 {
+    padding: 60px 0;
+  }
+  
+  .page-404__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 60px;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      text-align: left;
+      justify-content: space-between;
+    }
+  }
+  
+  .page-404__content {
+    margin-bottom: 40px;
+    
+    @media (min-width: 768px) {
+      margin-bottom: 0;
+      margin-right: 40px;
+      flex: 1;
+    }
+  }
+  
+  .page-404__title {
+    margin-bottom: 20px;
+    font-size: 36px;
+    
+    @media (min-width: 768px) {
+      font-size: 48px;
+    }
+  }
+  
+  .page-404__text {
+    margin-bottom: 30px;
+    font-size: 18px;
+    color: #777;
+  }
+  
+  .page-404__button {
+    min-width: 200px;
+  }
+  
+  .page-404__image {
+    max-width: 100%;
+    
+    @media (min-width: 768px) {
+      flex: 1;
+      text-align: right;
+    }
+    
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+  
+  .page-404__featured-products {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid #eee;
+  }
+  
+  .page-404__featured-title {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+</style>
